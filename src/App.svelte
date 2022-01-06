@@ -43,7 +43,7 @@
 			posts = res.data;
 			return res.data;
 		} else {
-			const res = await supabase.from("posts").select("*");
+			const res = await supabase.from("posts").select("*").eq("channel", "null");
 			posts = res.data;
 			return res.data;
 		}
@@ -220,7 +220,7 @@
 				on:click={() => {
 					activeChannel = "null";
 					getData();
-				}}>Show Posts for All Channels</button
+				}}>Public Chat</button
 			>
 			<hr />
 			<button
