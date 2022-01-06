@@ -6,7 +6,7 @@
 	let newChannel = "";
 	let channels = [];
 	let activeChannel = "null";
-	let newEmail = ""
+	let newEmail = "";
 
 	let signedIn = false;
 
@@ -43,45 +43,68 @@
 			posts = res.data;
 			return res.data;
 		} else {
-			const res = await supabase.from("posts").select("*").eq("channel", "null");
+			const res = await supabase
+				.from("posts")
+				.select("*")
+				.eq("channel", "null");
 			posts = res.data;
 			return res.data;
 		}
 	}
 
 	async function addPost(channelName) {
-		await supabase.from("posts").insert([
-			{
-				name: name,
-				description: desc,
-				email: userSess.email,
-				channel: channelName,
-			},
-		]);
-		name = "";
-		desc = "";
+		if (name == "") {
+			errorMsg = "Please enter a post name!";
+			setTimeout(() => {
+				errorMsg = "";
+			}, 1500);
+		} else {
+			await supabase.from("posts").insert([
+				{
+					name: name,
+					description: desc,
+					email: userSess.email,
+					channel: channelName,
+				},
+			]);
+			name = "";
+			desc = "";
+		}
 	}
 
 	async function addChannel() {
-		await supabase.from("channels").insert([
-			{
-				name: newChannel,
-				access: userSess.email,
-			},
-		]);
+		if (newChannel == "") {
+			errorMsg = "Please enter a channel name!";
+			setTimeout(() => {
+				errorMsg = "";
+			}, 1500);
+		} else {
+			await supabase.from("channels").insert([
+				{
+					name: newChannel,
+					access: userSess.email,
+				},
+			]);
+		}
 	}
 
 	async function addPerson() {
-		console.log(activeChannel)
-		const res = await supabase.from("channels").select("*").eq("name", activeChannel);
-		console.log(res.data)
+		console.log(activeChannel);
+		const res = await supabase
+			.from("channels")
+			.select("*")
+			.eq("name", activeChannel);
+		console.log(res.data);
 
-		const newStr = res.data[0].access.concat(", ", newEmail)
-		console.log(newStr)
+		const newStr = res.data[0].access.concat(", ", newEmail);
+		console.log(newStr);
 
-		await supabase.from("channels").update({
-			access: newStr
-		}).eq("name", activeChannel);
+		await supabase
+			.from("channels")
+			.update({
+				access: newStr,
+			})
+			.eq("name", activeChannel);
 	}
 
 	async function deletePost(postI, postN, postD, postE) {
@@ -100,7 +123,7 @@
 		errorMsg = "";
 		deleting = true;
 		await supabase.from("channels").delete().match({
-			name: activeChannel
+			name: activeChannel,
 		});
 		location.reload();
 		deleting = false;
@@ -165,134 +188,175 @@
 
 {#if userSess !== null}
 	{#await getData()}
-		<p>Grabbing posts...</p>
+		<div class="flex justify-center items-center h-screen">
+			<p class="text-5xl text-emerald-500">Grabbing posts...</p>
+		</div>
 	{:then}
 		{#if !deleting}
-			<p style="color: red;">{errorMsg}</p>
-			{#each posts.reverse() as post}
-				<p class="text-3xl">{post.name}</p>
-				<p>{post.description}</p>
-				{#if userSess.email.toLowerCase() == post.email}
+			<div class="flex flex-row bg-white">
+				<div class="w-1/12 fixed left-0">
+					{#each channels as channel}
+						{#if activeChannel == channel}
+							<button
+								class="p-1 m-1 rounded-md bg-emerald-400"
+								on:click={() => {
+									activeChannel = channel;
+									getData();
+								}}>{channel}</button
+							>
+						{:else}
+							<button
+								class="p-1 m-1 rounded-md border-2 border-emerald-400 text-emerald-400"
+								on:click={() => {
+									activeChannel = channel;
+									getData();
+								}}>{channel}</button
+							>
+						{/if}
+					{/each}
+					{#if activeChannel == "null"}
+						<button
+							class="p-1 m-1 rounded-md bg-emerald-400"
+							on:click={() => {
+								activeChannel = "null";
+								getData();
+							}}>Public Chat</button
+						>
+					{:else}
+						<button
+							class="p-1 m-1 rounded-md border-2 border-emerald-400 text-emerald-400"
+							on:click={() => {
+								activeChannel = "null";
+								getData();
+							}}>Public Chat</button
+						>
+					{/if}
+				</div>
+				<div class="w-9/12 ml-32 mb-16">
+					{#each posts.reverse() as post}
+						<p class="text-3xl">{post.name}</p>
+						<p>{post.description}</p>
+						<div class="flex">
+							<p>This is from: {post.email}</p>
+							{#if userSess.email.toLowerCase() == post.email}
+								<button
+									class="ml-3 text-red-500"
+									on:click={() => {
+										deletePost(
+											post.id,
+											post.name,
+											post.description,
+											post.email
+										);
+									}}>Delete this post</button
+								>
+							{/if}
+						</div>
+						<hr />
+					{/each}
+					<footer class="fixed bottom-0">
+						<div class="bg-white w-screen">
+							<p style="color: red;">{errorMsg}</p>
+							<button
+								on:click={() => {
+									addPost(activeChannel);
+								}}
+								class="bg-emerald-400 p-2 m-1 shadow-xl rounded-md"
+								>Create a post!</button
+							>
+							<input
+								placeholder="Name of Post (required): "
+								bind:value={name}
+								class="border-2 p-2 m-1 rounded-md w-64"
+							/>
+							<input
+								placeholder="Description of Post (optional): "
+								bind:value={desc}
+								class="border-2 p-2 m-1 rounded-md w-5/12"
+							/>
+						</div>
+					</footer>
+				</div>
+				<div
+					class="w-1/6 fixed right-0 flex flex-col h-screen justify-center items-center"
+				>
+					{#if activeChannel != "null"}
+						<button
+							class="p-2 m-1 rounded-md bg-emerald-400 shadow-lg"
+							on:click={async () => {
+								await addPerson();
+								newEmail = "";
+								await getData();
+							}}>Add a Person to this Channel</button
+						>
+						<input
+							placeholder="Email of Person: "
+							bind:value={newEmail}
+							class="border-2 p-2 m-1 rounded-md"
+						/>
+					{/if}
 					<button
-						class="p-1 m-1 border-2 border-red-500 text-red-500 rounded-md"
-						on:click={() => {
-							deletePost(
-								post.id,
-								post.name,
-								post.description,
-								post.email
-							);
-						}}>Delete this post</button
+						class="p-2 m-1 rounded-md bg-emerald-400 shadow-lg"
+						on:click={async () => {
+							await addChannel();
+							newChannel = "";
+							await getData();
+						}}>Create a new Channel</button
 					>
-				{/if}
-				<p>This is from: {post.email}</p>
-				<hr />
-			{/each}
-			<button
-				on:click={() => {
-					addPost(activeChannel);
-				}}
-				class="bg-emerald-400 p-2 m-1 shadow-xl rounded-md"
-				>Create a post!</button
-			>
-			<input
-				placeholder="Name of Post: "
-				bind:value={name}
-				class="border-2 p-2 m-1 rounded-md"
-			/>
-			<input
-				placeholder="Description of Post: "
-				bind:value={desc}
-				class="border-2 p-2 m-1 rounded-md"
-			/>
-			<hr />
-			{#each channels as channel}
-				<button
-					class="p-1 m-1 rounded-md border-2 border-emerald-500 text-emerald-500"
-					on:click={() => {
-						activeChannel = channel;
-						getData();
-					}}>{channel}</button
-				>
-			{/each}
-			<button
-				class="p-1 m-1 rounded-md border-2 border-emerald-500 text-emerald-500"
-				on:click={() => {
-					activeChannel = "null";
-					getData();
-				}}>Public Chat</button
-			>
-			<hr />
-			<button
-				class="p-2 m-1 rounded-md bg-emerald-400 shadow-lg"
-				on:click={async () => {
-					await addPerson();
-					newEmail = "";
-					await getData();
-				}}>Add a Person to this Channel</button
-			>
-			<input
-				placeholder="Email of Person: "
-				bind:value={newEmail}
-				class="border-2 p-2 m-1 rounded-md"
-			/>
-			<hr />
-			<button
-				class="p-2 m-1 rounded-md bg-emerald-400 shadow-lg"
-				on:click={async () => {
-					await addChannel();
-					newChannel = "";
-					await getData();
-				}}>Create a Channel</button
-			>
-			<input
-				placeholder="Name of Channel: "
-				bind:value={newChannel}
-				class="border-2 p-2 m-1 rounded-md"
-			/>
-			{#if activeChannel != "null"}
-				<button
-					class="p-2 m-1 rounded-md bg-red-500 shadow-lg"
-					on:click={() => {
-						deleteChannel();
-					}}>Delete this channel</button
-				>
-			{/if}
-			<hr />
-			<button
-				class="border-2 border-red-500 text-red-500 p-2 m-1 rounded-md"
-				on:click={async () => {
-					await signOut();
-				}}>Sign Out</button
-			>
+					<input
+						placeholder="Name of Channel: "
+						bind:value={newChannel}
+						class="border-2 p-2 m-1 rounded-md"
+					/>
+					{#if activeChannel != "null"}
+						<button
+							class="p-2 m-1 rounded-md bg-red-500 shadow-lg"
+							on:click={() => {
+								deleteChannel();
+							}}>Delete this channel</button
+						>
+					{/if}
+					<button
+						class="border-2 border-red-500 text-red-500 p-2 m-1 rounded-md"
+						on:click={async () => {
+							await signOut();
+						}}>Sign Out</button
+					>
+				</div>
+			</div>
 		{:else}
-			<h1>Deleting post/channel...</h1>
+			<div class="flex justify-center items-center h-screen">
+				<p class="text-5xl text-red-500">Deleting post/channel...</p>
+			</div>
 		{/if}
 	{/await}
 {:else}
-	<input
-		type="email"
-		placeholder="Your Email: "
-		bind:value={email}
-		class="border-2 p-2 m-1 rounded-md"
-	/>
-	<input
-		type="password"
-		placeholder="Your Password:  "
-		bind:value={pass}
-		class="border-2 p-2 m-1 rounded-md"
-	/>
-	<button
-		class="bg-emerald-400 shadow-sm shadow-emerald-400 p-2 m-1 rounded-sm"
-		on:click={() => {
-			signUp(email, pass);
-		}}>Sign up!</button
-	>
-	<button
-		class="border-2 border-emerald-400 p-2 m-1 rounded-sm"
-		on:click={() => {
-			signIn(email, pass);
-		}}>Sign In!</button
-	>
-	<p style="color: red;">{errorMsg}</p>
+	<div class="flex flex-col items-center justify-center h-screen">
+		<p class="text-5xl m-3">Rohit's Chat App</p>
+		<input
+			type="email"
+			placeholder="Your Email: "
+			bind:value={email}
+			class="border-2 p-2 m-1 rounded-md"
+		/>
+		<input
+			type="password"
+			placeholder="Your Password:  "
+			bind:value={pass}
+			class="border-2 p-2 m-1 rounded-md"
+		/>
+		<button
+			class="bg-emerald-400 shadow-sm shadow-emerald-400 p-2 m-1 rounded-md"
+			on:click={() => {
+				signUp(email, pass);
+			}}>Sign up!</button
+		>
+		<button
+			class="border-2 border-emerald-400 p-2 m-1 rounded-md"
+			on:click={() => {
+				signIn(email, pass);
+			}}>Sign In!</button
+		>
+		<p style="color: red;">{errorMsg}</p>
+	</div>
 {/if}
