@@ -3,6 +3,11 @@
 	let name = "";
 	let desc = "";
 
+	let newChannel = "";
+	let channels = [];
+	let activeChannel = "null";
+	let newEmail = ""
+
 	let signedIn = false;
 
 	let errorMsg = "";
@@ -22,40 +27,83 @@
 	let userSess = supabase.auth.user();
 
 	async function getData() {
-		const res = await supabase.from("posts").select("*");
-		posts = res.data;
-		return res.data;
+		const res2 = await supabase.from("channels").select("*");
+		channels = [];
+		for (var i in res2.data) {
+			if (res2.data[i].access.includes(userSess.email)) {
+				channels = [...channels, res2.data[i].name];
+			}
+		}
+
+		if (activeChannel != "null") {
+			const res = await supabase
+				.from("posts")
+				.select("*")
+				.eq("channel", activeChannel);
+			posts = res.data;
+			return res.data;
+		} else {
+			const res = await supabase.from("posts").select("*");
+			posts = res.data;
+			return res.data;
+		}
 	}
 
-	async function addPost() {
+	async function addPost(channelName) {
 		await supabase.from("posts").insert([
 			{
 				name: name,
 				description: desc,
-				email: email,
+				email: userSess.email,
+				channel: channelName,
 			},
 		]);
 		name = "";
 		desc = "";
 	}
 
+	async function addChannel() {
+		await supabase.from("channels").insert([
+			{
+				name: newChannel,
+				access: userSess.email,
+			},
+		]);
+	}
+
+	async function addPerson() {
+		console.log(activeChannel)
+		const res = await supabase.from("channels").select("*").eq("name", activeChannel);
+		console.log(res.data)
+
+		const newStr = res.data[0].access.concat(", ", newEmail)
+		console.log(newStr)
+
+		await supabase.from("channels").update({
+			access: newStr
+		}).eq("name", activeChannel);
+	}
+
 	async function deletePost(postI, postN, postD, postE) {
-		if (email.toLowerCase() == postE.toLowerCase()) {
-			errorMsg = "";
-			deleting = true;
-			await supabase.from("posts").delete().match({
-				name: postN,
-				description: postD,
-				id: postI,
-			});
-			await getData();
-			deleting = false;
-		} else {
-			errorMsg = "You didn't create this post!";
-			setTimeout(() => {
-				errorMsg = "";
-			}, 1500);
-		}
+		errorMsg = "";
+		deleting = true;
+		await supabase.from("posts").delete().match({
+			name: postN,
+			description: postD,
+			id: postI,
+		});
+		await getData();
+		deleting = false;
+	}
+
+	async function deleteChannel() {
+		errorMsg = "";
+		deleting = true;
+		await supabase.from("channels").delete().match({
+			name: activeChannel
+		});
+		location.reload();
+		deleting = false;
 	}
 
 	async function signUp(email, password) {
@@ -97,10 +145,9 @@
 			setTimeout(() => {
 				errorMsg = "";
 			}, 1500);
-		}
-		else {
+		} else {
 			signedIn = false;
-			location.reload()
+			location.reload();
 			//localStorage.signedIn = false
 		}
 	}
@@ -110,7 +157,7 @@
 		.on("*", (res) => {
 			console.log(res);
 
-			posts = [...posts, res.new];
+			getData();
 			console.log(posts);
 		})
 		.subscribe();
@@ -118,28 +165,34 @@
 
 {#if userSess !== null}
 	{#await getData()}
-		<p>Fetching</p>
+		<p>Grabbing posts...</p>
 	{:then}
 		{#if !deleting}
-		<p>{userSess}</p>
 			<p style="color: red;">{errorMsg}</p>
 			{#each posts.reverse() as post}
-				<h1>{post.name}</h1>
+				<p class="text-3xl">{post.name}</p>
 				<p>{post.description}</p>
-				<button
-					on:click={() => {
-						deletePost(
-							post.id,
-							post.name,
-							post.description,
-							post.email
-						);
-					}}>Delete this post</button
-				>
+				{#if userSess.email.toLowerCase() == post.email}
+					<button
+						class="p-1 m-1 border-2 border-red-500 text-red-500 rounded-md"
+						on:click={() => {
+							deletePost(
+								post.id,
+								post.name,
+								post.description,
+								post.email
+							);
+						}}>Delete this post</button
+					>
+				{/if}
 				<p>This is from: {post.email}</p>
 				<hr />
 			{/each}
-			<button on:click={addPost} class="bg-emerald-400 p-2 m-1"
+			<button
+				on:click={() => {
+					addPost(activeChannel);
+				}}
+				class="bg-emerald-400 p-2 m-1 shadow-xl rounded-md"
 				>Create a post!</button
 			>
 			<input
@@ -153,18 +206,70 @@
 				class="border-2 p-2 m-1 rounded-md"
 			/>
 			<hr />
+			{#each channels as channel}
+				<button
+					class="p-1 m-1 rounded-md border-2 border-emerald-500 text-emerald-500"
+					on:click={() => {
+						activeChannel = channel;
+						getData();
+					}}>{channel}</button
+				>
+			{/each}
 			<button
-				class="border-2 border-emerald-400 p-2 m-1 rounded-sm"
+				class="p-1 m-1 rounded-md border-2 border-emerald-500 text-emerald-500"
+				on:click={() => {
+					activeChannel = "null";
+					getData();
+				}}>Show Posts for All Channels</button
+			>
+			<hr />
+			<button
+				class="p-2 m-1 rounded-md bg-emerald-400 shadow-lg"
+				on:click={async () => {
+					await addPerson();
+					newEmail = "";
+					await getData();
+				}}>Add a Person to this Channel</button
+			>
+			<input
+				placeholder="Email of Person: "
+				bind:value={newEmail}
+				class="border-2 p-2 m-1 rounded-md"
+			/>
+			<hr />
+			<button
+				class="p-2 m-1 rounded-md bg-emerald-400 shadow-lg"
+				on:click={async () => {
+					await addChannel();
+					newChannel = "";
+					await getData();
+				}}>Create a Channel</button
+			>
+			<input
+				placeholder="Name of Channel: "
+				bind:value={newChannel}
+				class="border-2 p-2 m-1 rounded-md"
+			/>
+			{#if activeChannel != "null"}
+				<button
+					class="p-2 m-1 rounded-md bg-red-500 shadow-lg"
+					on:click={() => {
+						deleteChannel();
+					}}>Delete this channel</button
+				>
+			{/if}
+			<hr />
+			<button
+				class="border-2 border-red-500 text-red-500 p-2 m-1 rounded-md"
 				on:click={async () => {
 					await signOut();
 				}}>Sign Out</button
 			>
 		{:else}
-			<h1>Deleting post...</h1>
+			<h1>Deleting post/channel...</h1>
 		{/if}
 	{/await}
 {:else}
-	<p>{userSess}</p>
 	<input
 		type="email"
 		placeholder="Your Email: "
