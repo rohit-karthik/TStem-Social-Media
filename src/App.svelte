@@ -3,6 +3,8 @@
 	let name = "";
 	let desc = "";
 
+	let chatOrTodo = "chat";
+
 	let newChannel = "";
 	let channels = [];
 	let activeChannel = "null";
@@ -16,6 +18,8 @@
 	let pass = "";
 
 	let deleting = false;
+
+	let opened = false;
 
 	import { createClient } from "@supabase/supabase-js";
 
@@ -184,179 +188,284 @@
 			console.log(posts);
 		})
 		.subscribe();
+
+	function openSidebar() {
+		if (opened) {
+			document.getElementById("sidebar").style.width = "0%";
+			document.getElementById("mainContent").style.width = "100%";
+			document.getElementById("switchButton").style.right = "3rem";
+			document.getElementById("infoButton").style.right = "0.25rem";
+			opened = false;
+		} else {
+			document.getElementById("sidebar").style.width = "16.666667%";
+			document.getElementById("mainContent").style.width = "66.666667%";
+			document.getElementById("switchButton").style.right = "18.75rem";
+			document.getElementById("infoButton").style.right = "16rem";
+			opened = true;
+		}
+	}
+
+	function handleKeydown(event) {
+		if (event.key == "Enter") {
+			addPost(activeChannel);
+		}
+	}
 </script>
 
-{#if userSess !== null}
-	{#await getData()}
-		<div class="flex justify-center items-center h-screen">
-			<p class="text-5xl text-emerald-500">Grabbing posts...</p>
-		</div>
-	{:then}
-		{#if !deleting}
-			<div class="flex flex-row bg-white">
-				<div class="w-1/12 fixed left-0">
-					{#each channels as channel}
-						{#if activeChannel == channel}
+<div class="flex overflow-auto flex-col-reverse h-screen pb-16">
+	{#if userSess !== null}
+		{#await getData()}
+			<div class="flex justify-center items-center h-screen">
+				<p class="text-5xl text-emerald-500">Grabbing posts...</p>
+			</div>
+		{:then}
+			{#if !deleting}
+				<div class="flex flex-row bg-white">
+					<div
+						class="w-2/12 fixed left-0 top-0 h-screen text-white"
+						style="background-color: #39133D;"
+					>
+						<p class="m-2 text-lg">Rohit's Chat App</p>
+						<hr />
+						{#each channels as channel}
+							{#if activeChannel == channel}
+								<button
+									class="w-full text-left pl-1 py-1"
+									style="background-color: #2F629E;"
+									on:click={() => {
+										activeChannel = channel;
+										getData();
+									}}># {channel}</button
+								>
+							{:else}
+								<button
+									class="border-emerald-400 w-full text-left pl-1 py-1"
+									on:click={() => {
+										activeChannel = channel;
+										getData();
+									}}># {channel}</button
+								>
+							{/if}
+						{/each}
+						{#if activeChannel == "null"}
 							<button
-								class="p-1 m-1 rounded-md bg-emerald-400"
+								class="w-full text-left pl-1 py-1"
+								style="background-color: #2F629E;"
 								on:click={() => {
-									activeChannel = channel;
+									activeChannel = "null";
 									getData();
-								}}>{channel}</button
+								}}># Public Chat</button
 							>
 						{:else}
 							<button
-								class="p-1 m-1 rounded-md border-2 border-emerald-400 text-emerald-400"
+								class="w-full text-left pl-1 py-1"
 								on:click={() => {
-									activeChannel = channel;
+									activeChannel = "null";
 									getData();
-								}}>{channel}</button
+								}}># Public Chat</button
 							>
 						{/if}
-					{/each}
-					{#if activeChannel == "null"}
-						<button
-							class="p-1 m-1 rounded-md bg-emerald-400"
-							on:click={() => {
-								activeChannel = "null";
-								getData();
-							}}>Public Chat</button
-						>
-					{:else}
-						<button
-							class="p-1 m-1 rounded-md border-2 border-emerald-400 text-emerald-400"
-							on:click={() => {
-								activeChannel = "null";
-								getData();
-							}}>Public Chat</button
-						>
-					{/if}
-				</div>
-				<div class="w-9/12 ml-32 mb-16">
-					{#each posts.reverse() as post}
-						<p class="text-3xl">{post.name}</p>
-						<p>{post.description}</p>
-						<div class="flex">
-							<p>This is from: {post.email}</p>
-							{#if userSess.email.toLowerCase() == post.email}
-								<button
-									class="ml-3 text-red-500"
-									on:click={() => {
-										deletePost(
-											post.id,
-											post.name,
-											post.description,
-											post.email
-										);
-									}}>Delete this post</button
-								>
-							{/if}
+					</div>
+					{#if chatOrTodo == "chat"}
+						<div class="ml-64" id="mainContent" style="width: 100%">
+							<header class="fixed top-0">
+								<div class="bg-white w-screen p-2">
+									<p>
+										# {activeChannel == "null"
+											? "Public Chat"
+											: activeChannel}
+									</p>
+									<button
+										id="switchButton"
+										class="border-2 border-black p-1 rounded-md fixed top-1 right-1"
+										style="right: 3rem; transition: 0.5s;"
+										on:click={() => {
+											chatOrTodo = "todos"
+										}}>Switch to Todos</button
+									>
+									<button
+										id="infoButton"
+										class="border-2 border-black p-1 rounded-md fixed top-1 right-1"
+										style="right: 0.25rem; transition: 0.5s;"
+										on:click={openSidebar}>Info</button
+									>
+								</div>
+							</header>
+							{#each posts as post}
+								<p class="text-3xl">{post.name}</p>
+								<p>{post.description}</p>
+								<div class="flex">
+									<p>This is from: {post.email}</p>
+									{#if userSess.email.toLowerCase() == post.email}
+										<button
+											class="ml-3 text-red-500"
+											on:click={() => {
+												deletePost(
+													post.id,
+													post.name,
+													post.description,
+													post.email
+												);
+											}}>Delete this post</button
+										>
+									{/if}
+								</div>
+								<hr />
+							{/each}
+							<footer class="fixed bottom-0">
+								<div class="bg-white w-screen">
+									<p style="color: red;">{errorMsg}</p>
+									<input
+										placeholder="Name of Post (required): "
+										bind:value={name}
+										on:keydown={handleKeydown}
+										class="border-2 p-2 m-1 rounded-md w-64"
+									/>
+									<input
+										placeholder="Description of Post (optional): "
+										bind:value={desc}
+										on:keydown={handleKeydown}
+										class="border-2 p-2 m-1 rounded-md w-5/12"
+									/>
+									<button
+										on:click={() => {
+											addPost(activeChannel);
+										}}
+										class="bg-emerald-400 p-2 m-1 shadow-xl rounded-md"
+										>Post</button
+									>
+								</div>
+							</footer>
 						</div>
-						<hr />
-					{/each}
-					<footer class="fixed bottom-0">
-						<div class="bg-white w-screen">
-							<p style="color: red;">{errorMsg}</p>
+					{:else}
+						<div class="ml-64" id="mainContent" style="width: 100%">
+							<header class="fixed top-0">
+								<div class="bg-white w-screen p-2">
+									<p>
+										# {activeChannel == "null"
+											? "Public Chat"
+											: activeChannel}
+									</p>
+									<button
+										id="switchButton"
+										class="border-2 border-black p-1 rounded-md fixed top-1 right-1"
+										style="right: 3rem; transition: 0.5s;"
+										on:click={() => {
+											chatOrTodo = "chat"
+										}}>Switch to Chat</button
+									>
+									<button
+										id="infoButton"
+										class="border-2 border-black p-1 rounded-md fixed top-1 right-1"
+										style="right: 0.25rem; transition: 0.5s;"
+										on:click={openSidebar}>Info</button
+									>
+								</div>
+							</header>
+							<footer class="fixed bottom-0">
+								<div class="bg-white w-screen">
+									<p style="color: red;">{errorMsg}</p>
+									<input
+										placeholder="Name of Todo (required): "
+										bind:value={name}
+										class="border-2 p-2 m-1 rounded-md w-64"
+									/>
+									<button
+										on:click={() => {
+											addPost(activeChannel);
+										}}
+										class="bg-emerald-400 p-2 m-1 shadow-xl rounded-md"
+										>Create</button
+									>
+								</div>
+							</footer>
+						</div>
+					{/if}
+					<div
+						class="fixed right-0 top-0 flex flex-col h-screen"
+						style="width: 0%; transition: 0.5s;"
+						id="sidebar"
+					>
+						{#if activeChannel != "null"}
 							<button
-								on:click={() => {
-									addPost(activeChannel);
-								}}
-								class="bg-emerald-400 p-2 m-1 shadow-xl rounded-md"
-								>Create a post!</button
+								class="p-2 m-1 rounded-md bg-emerald-400 shadow-lg"
+								on:click={async () => {
+									await addPerson();
+									newEmail = "";
+									await getData();
+								}}>Add a Person to this Channel</button
 							>
 							<input
-								placeholder="Name of Post (required): "
-								bind:value={name}
-								class="border-2 p-2 m-1 rounded-md w-64"
+								placeholder="Email of Person: "
+								bind:value={newEmail}
+								class="border-2 p-2 m-1 rounded-md"
 							/>
-							<input
-								placeholder="Description of Post (optional): "
-								bind:value={desc}
-								class="border-2 p-2 m-1 rounded-md w-5/12"
-							/>
-						</div>
-					</footer>
-				</div>
-				<div
-					class="w-1/6 fixed right-0 flex flex-col h-screen justify-center items-center"
-				>
-					{#if activeChannel != "null"}
+						{/if}
 						<button
 							class="p-2 m-1 rounded-md bg-emerald-400 shadow-lg"
 							on:click={async () => {
-								await addPerson();
-								newEmail = "";
+								await addChannel();
+								newChannel = "";
 								await getData();
-							}}>Add a Person to this Channel</button
+							}}>+ Create a new Channel</button
 						>
 						<input
-							placeholder="Email of Person: "
-							bind:value={newEmail}
+							placeholder="Name of Channel: "
+							bind:value={newChannel}
 							class="border-2 p-2 m-1 rounded-md"
 						/>
-					{/if}
-					<button
-						class="p-2 m-1 rounded-md bg-emerald-400 shadow-lg"
-						on:click={async () => {
-							await addChannel();
-							newChannel = "";
-							await getData();
-						}}>Create a new Channel</button
-					>
-					<input
-						placeholder="Name of Channel: "
-						bind:value={newChannel}
-						class="border-2 p-2 m-1 rounded-md"
-					/>
-					{#if activeChannel != "null"}
+						{#if activeChannel != "null"}
+							<button
+								class="p-2 m-1 rounded-md bg-red-500 shadow-lg"
+								on:click={() => {
+									deleteChannel();
+								}}>Delete this channel</button
+							>
+						{/if}
 						<button
-							class="p-2 m-1 rounded-md bg-red-500 shadow-lg"
-							on:click={() => {
-								deleteChannel();
-							}}>Delete this channel</button
+							class="border-2 border-red-500 text-red-500 p-2 m-1 rounded-md"
+							on:click={async () => {
+								await signOut();
+							}}>Sign Out</button
 						>
-					{/if}
-					<button
-						class="border-2 border-red-500 text-red-500 p-2 m-1 rounded-md"
-						on:click={async () => {
-							await signOut();
-						}}>Sign Out</button
-					>
+					</div>
 				</div>
-			</div>
-		{:else}
-			<div class="flex justify-center items-center h-screen">
-				<p class="text-5xl text-red-500">Deleting post/channel...</p>
-			</div>
-		{/if}
-	{/await}
-{:else}
-	<div class="flex flex-col items-center justify-center h-screen">
-		<p class="text-5xl m-3">Rohit's Chat App</p>
-		<input
-			type="email"
-			placeholder="Your Email: "
-			bind:value={email}
-			class="border-2 p-2 m-1 rounded-md"
-		/>
-		<input
-			type="password"
-			placeholder="Your Password:  "
-			bind:value={pass}
-			class="border-2 p-2 m-1 rounded-md"
-		/>
-		<button
-			class="bg-emerald-400 shadow-sm shadow-emerald-400 p-2 m-1 rounded-md"
-			on:click={() => {
-				signUp(email, pass);
-			}}>Sign up!</button
-		>
-		<button
-			class="border-2 border-emerald-400 p-2 m-1 rounded-md"
-			on:click={() => {
-				signIn(email, pass);
-			}}>Sign In!</button
-		>
-		<p style="color: red;">{errorMsg}</p>
-	</div>
-{/if}
+			{:else}
+				<div class="flex justify-center items-center h-screen">
+					<p class="text-5xl text-red-500">
+						Deleting post/channel...
+					</p>
+				</div>
+			{/if}
+		{/await}
+	{:else}
+		<div class="flex flex-col items-center justify-center h-screen">
+			<p class="text-5xl m-3">Rohit's Chat App</p>
+			<input
+				type="email"
+				placeholder="Your Email: "
+				bind:value={email}
+				class="border-2 p-2 m-1 rounded-md"
+			/>
+			<input
+				type="password"
+				placeholder="Your Password:  "
+				bind:value={pass}
+				class="border-2 p-2 m-1 rounded-md"
+			/>
+			<button
+				class="bg-emerald-400 shadow-sm shadow-emerald-400 p-2 m-1 rounded-md"
+				on:click={() => {
+					signUp(email, pass);
+				}}>Sign up!</button
+			>
+			<button
+				class="border-2 border-emerald-400 p-2 m-1 rounded-md"
+				on:click={() => {
+					signIn(email, pass);
+				}}>Sign In!</button
+			>
+			<p style="color: red;">{errorMsg}</p>
+		</div>
+	{/if}
+</div>
