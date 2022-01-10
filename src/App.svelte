@@ -53,19 +53,23 @@
 				.from("posts")
 				.select("*")
 				.eq("channel", activeChannel)
-				.order("id", {ascending: false});
+				.order("id", { ascending: false });
 
-			console.log(latestPost)
-			let s = "@\"".concat(userSess.email, "\"");
+			console.log(latestPost);
+			let s = '@"'.concat(userSess.email, '"');
 
-
-			console.log(latestPost.data[0].name)
-			console.log(s)
-			if (latestPost.data[0].name.includes(s) || latestPost.data[0].description.includes(s)) {
-				console.log("mentioned")
-				Notification.requestPermission();
-				new Notification("You got mentioned! Check the chat.")
-				console.log("mentioned")
+			//console.log(latestPost.data[0].name)
+			console.log(s);
+			if (latestPost.data == []) {
+				if (
+					latestPost.data[0].name.includes(s) ||
+					latestPost.data[0].description.includes(s)
+				) {
+					console.log("mentioned");
+					Notification.requestPermission();
+					new Notification("You got mentioned! Check the chat.");
+					console.log("mentioned");
+				}
 			}
 			todos = [];
 			const res2 = await supabase
@@ -80,7 +84,7 @@
 			const res3 = await supabase
 				.from("todos")
 				.select("*")
-				.eq("channel", "null")
+				.eq("channel", activeChannel)
 				.eq("completed", true)
 				.order("id");
 			completedTodos = res3.data;
@@ -96,19 +100,21 @@
 				.from("posts")
 				.select("*")
 				.eq("channel", activeChannel)
-				.order("id", {ascending: false});
+				.order("id", { ascending: false });
 
-			console.log(latestPost)
-			let s = "@\"".concat(userSess.email, "\"");
+			console.log(latestPost);
+			let s = '@"'.concat(userSess.email, '"');
 
-
-			console.log(latestPost.data[0].name)
-			console.log(s)
-			if (latestPost.data[0].name.includes(s) || latestPost.data[0].description.includes(s)) {
-				console.log("mentioned")
+			console.log(latestPost.data[0].name);
+			console.log(s);
+			if (
+				latestPost.data[0].name.includes(s) ||
+				latestPost.data[0].description.includes(s)
+			) {
+				console.log("mentioned");
 				Notification.requestPermission();
-				new Notification("You got mentioned! Check the chat.")
-				console.log("mentioned")
+				new Notification("You got mentioned! Check the chat.");
+				console.log("mentioned");
 			}
 			todos = [];
 			const res2 = await supabase
@@ -456,23 +462,17 @@
 								<div class="bg-white w-screen">
 									<p style="color: red;">{errorMsg}</p>
 									<input
-										placeholder="Name of Post (required): "
+										placeholder="Text (required): "
 										bind:value={name}
 										on:keydown={handleKeydown}
-										class="border-2 p-2 m-1 rounded-md w-64"
-									/>
-									<input
-										placeholder="Description of Post (optional): "
-										bind:value={desc}
-										on:keydown={handleKeydown}
-										class="border-2 resize p-2 m-2 rounded-md w-5/12"
+										class="border-2 p-2 m-1 rounded-md w-7/12"
 									/>
 									<button
 										on:click={() => {
 											addPost(activeChannel);
 										}}
 										class="bg-emerald-400 p-2 m-1 shadow-xl rounded-md"
-										>Post</button
+										>Send</button
 									>
 								</div>
 							</div>
