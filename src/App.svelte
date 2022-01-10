@@ -49,6 +49,24 @@
 				.eq("channel", activeChannel)
 				.order("id");
 			posts = res.data;
+			const latestPost = await supabase
+				.from("posts")
+				.select("*")
+				.eq("channel", activeChannel)
+				.order("id", {ascending: false});
+
+			console.log(latestPost)
+			let s = "@\"".concat(userSess.email, "\"");
+
+
+			console.log(latestPost.data[0].name)
+			console.log(s)
+			if (latestPost.data[0].name.includes(s) || latestPost.data[0].description.includes(s)) {
+				console.log("mentioned")
+				Notification.requestPermission();
+				new Notification("You got mentioned! Check the chat.")
+				console.log("mentioned")
+			}
 			todos = [];
 			const res2 = await supabase
 				.from("todos")
@@ -73,6 +91,25 @@
 				.eq("channel", "null")
 				.order("id");
 			posts = res.data;
+
+			const latestPost = await supabase
+				.from("posts")
+				.select("*")
+				.eq("channel", activeChannel)
+				.order("id", {ascending: false});
+
+			console.log(latestPost)
+			let s = "@\"".concat(userSess.email, "\"");
+
+
+			console.log(latestPost.data[0].name)
+			console.log(s)
+			if (latestPost.data[0].name.includes(s) || latestPost.data[0].description.includes(s)) {
+				console.log("mentioned")
+				Notification.requestPermission();
+				new Notification("You got mentioned! Check the chat.")
+				console.log("mentioned")
+			}
 			todos = [];
 			const res2 = await supabase
 				.from("todos")
@@ -258,21 +295,21 @@
 	supabase
 		.from("posts")
 		.on("*", (res) => {
-			console.log(res);
+			//console.log(res);
 
 			getData();
-			console.log(posts);
+			//console.log(posts);
 		})
 		.subscribe();
 
 	supabase
 		.from("todos")
 		.on("*", (res) => {
-			console.log(res);
+			//console.log(res);
 
 			getData();
 			//location.reload();
-			console.log(todos);
+			//console.log(todos);
 		})
 		.subscribe();
 
