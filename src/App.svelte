@@ -3,7 +3,7 @@
 	let name = "";
 	let desc = "";
 
-	let chatOrTodo = "chat";
+	let chatOrTodo = "profile";
 
 	let newChannel = "";
 	let channels = [];
@@ -409,6 +409,12 @@
 								await signOut();
 							}}>Sign Out</button
 						>
+						<button
+							class="bg-emerald-500 text-white p-2 m-1 rounded-md fixed bottom-2 left-24"
+							on:click={() => {
+								chatOrTodo = "profile";
+							}}>Profile</button
+						>
 					</div>
 					{#if chatOrTodo == "chat"}
 						<div class="ml-64" id="mainContent" style="width: 100%">
@@ -435,28 +441,44 @@
 									>
 								</div>
 							</div>
-							<div class="pt-8 pb-16">
-								{#each posts as post}
-									<p class="text-3xl">{post.name}</p>
-									<p>{post.description}</p>
-									<div class="flex">
-										<p>This is from: {post.email}</p>
-										{#if userSess.email.toLowerCase() == post.email}
-											<button
-												class="ml-3 text-red-500"
-												on:click={() => {
-													deletePost(
-														post.id,
-														post.name,
-														post.description,
-														post.email
-													);
-												}}>Delete this post</button
-											>
-										{/if}
-									</div>
-									<hr />
-								{/each}
+							<div class="pt-10 pb-12 flex">
+								<div class="flex flex-col">
+									{#each posts as post}
+										<div class="flex flex-row pl-1">
+											<img
+												src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
+												alt="Default Profile Pic"
+												class="w-8 h-8 rounded-sm self-center"
+											/>
+											<div class="pl-3">
+												<p class="font-bold">
+													{post.email}
+												</p>
+												<p>{post.description}</p>
+												<div class="flex">
+													<p>
+														{post.name}
+													</p>
+													{#if userSess.email.toLowerCase() == post.email}
+														<button
+															class="ml-3 text-red-500"
+															on:click={() => {
+																deletePost(
+																	post.id,
+																	post.name,
+																	post.description,
+																	post.email
+																);
+															}}
+															>Delete this post</button
+														>
+													{/if}
+												</div>
+											</div>
+										</div>
+										<hr class="w-screen" />
+									{/each}
+								</div>
 							</div>
 							<div class="fixed bottom-0">
 								<div class="bg-white w-screen">
@@ -477,7 +499,7 @@
 								</div>
 							</div>
 						</div>
-					{:else}
+					{:else if chatOrTodo == "todos"}
 						<div class="ml-64" id="mainContent" style="width: 100%">
 							<div class="fixed top-0">
 								<div class="bg-white w-screen p-2">
@@ -578,6 +600,51 @@
 									>
 								</div>
 							</div>
+						</div>
+					{:else}
+						<div
+							class="flex flex-col h-screen w-10/12 justify-center items-center fixed top-0 ml-64"
+						>
+							<button
+								class="p-5"
+								on:click={() => {
+									chatOrTodo = "chat";
+								}}>{"<"} Go Back</button
+							>
+							<p class="text-2xl font-bold p-2">
+								{userSess.email}
+							</p>
+							<p>Current Profile Picture:</p>
+							<img
+								src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
+								alt="Default Profile Pic"
+								class="w-48 h-48 p-2 rounded-3xl hover:opacity-50"
+							/>
+							<input
+								type="file"
+								id="newPic"
+								class="pl-28 pt-2 text-emerald-500"
+								accept="image/*"
+								on:change={async (e) => {
+									console.log(e.target.files[0]);
+									var file = e.target.files[0];
+									if (file != null) {
+										console.log(file);
+										const { data, error } =
+											await supabase.storage
+												.from("profile-pics")
+												.upload(
+													`${userSess.id}/${file}`,
+													file,
+													{
+														cacheControl: "3600",
+														upsert: false,
+													}
+												);
+										console.log(error)
+									}
+								}}
+							/>
 						</div>
 					{/if}
 					<div
