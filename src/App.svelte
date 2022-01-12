@@ -3,6 +3,9 @@
 	let name = "";
 	let desc = "";
 
+	let profilePic =
+		"https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png";
+
 	let chatOrTodo = "profile";
 
 	let newChannel = "";
@@ -346,6 +349,33 @@
 			addTodo(activeChannel);
 		}
 	}
+
+	async function uploadProfilePic(e) {
+		console.log(e.target.files[0]);
+		var file = e.target.files[0];
+		if (e.target.files || e.target.files.length != 0) {
+			console.log(file);
+			console.log(file.name.split(".").pop());
+			const fileExt = file.name.split(".").pop();
+			const fileName = `${userSess.id}/profile-picture.${fileExt}`;
+			const { data, error } = await supabase.storage
+				.from("profile-pics")
+				.upload(fileName, file, {
+					cacheControl: "3600",
+					upsert: false,
+				});
+		}
+	}
+
+	async function downloadProfilePic() {
+		try {
+			await fetch(
+				`https://tymaawbbrmoeljisdgry.supabase.co/storage/v1/object/public/profile-pics/${userSess.id}/profile-picture.png`
+			);
+			profilePic = `https://tymaawbbrmoeljisdgry.supabase.co/storage/v1/object/public/profile-pics/${userSess.id}/profile-picture.png`;
+		} catch {
+		}
+	}
 </script>
 
 <div class="flex overflow-auto flex-col-reverse h-screen">
@@ -476,7 +506,7 @@
 												</div>
 											</div>
 										</div>
-										<hr class="w-screen" />
+										<hr />
 									{/each}
 								</div>
 							</div>
@@ -615,35 +645,21 @@
 								{userSess.email}
 							</p>
 							<p>Current Profile Picture:</p>
-							<img
-								src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
-								alt="Default Profile Pic"
-								class="w-48 h-48 p-2 rounded-3xl hover:opacity-50"
-							/>
+							{#await downloadProfilePic()}
+								<p>Getting photo...</p>
+							{:then}
+								<img
+									src={profilePic}
+									alt="Default Profile Pic"
+									class="w-48 h-48 p-2 rounded-3xl hover:opacity-50"
+								/>
+							{/await}
 							<input
 								type="file"
 								id="newPic"
 								class="pl-28 pt-2 text-emerald-500"
 								accept="image/*"
-								on:change={async (e) => {
-									console.log(e.target.files[0]);
-									var file = e.target.files[0];
-									if (file != null) {
-										console.log(file);
-										const { data, error } =
-											await supabase.storage
-												.from("profile-pics")
-												.upload(
-													`${userSess.id}/${file}`,
-													file,
-													{
-														cacheControl: "3600",
-														upsert: false,
-													}
-												);
-										console.log(error)
-									}
-								}}
+								on:change={uploadProfilePic}
 							/>
 						</div>
 					{/if}
