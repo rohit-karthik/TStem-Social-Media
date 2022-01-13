@@ -38,6 +38,7 @@
 
 	async function getData() {
 		const res2 = await supabase.from("channels").select("*");
+		await downloadProfilePic();
 		channels = [];
 		for (var i in res2.data) {
 			if (res2.data[i].access.includes(userSess.email)) {
@@ -161,6 +162,7 @@
 					description: desc,
 					email: userSess.email,
 					channel: channelName,
+					profilePicture: profilePic,
 				},
 			]);
 			name = "";
@@ -358,13 +360,16 @@
 			console.log(file.name.split(".").pop());
 			const fileExt = "png"; //file.name.split(".").pop();
 			const fileName = `${userSess.id}/profile-picture.png`;
+			/*const { data1, error1 } = await supabase.storage
+				.from("profile-pics")
+				.remove([fileName]);*/
 			const { data, error } = await supabase.storage
 				.from("profile-pics")
 				.upload(fileName, file, {
 					cacheControl: "0",
 					upsert: true,
 				});
-			console.log(data)
+			console.log(data);
 		}
 	}
 
@@ -475,11 +480,19 @@
 								<div class="flex flex-col">
 									{#each posts as post}
 										<div class="flex flex-row pl-1">
-											<img
-												src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
-												alt="Default Profile Pic"
-												class="w-8 h-8 rounded-sm self-center"
-											/>
+											{#if post.profilePicture == null}
+												<img
+													src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
+													alt="Default Profile Pic"
+													class="w-8 h-8 rounded-sm self-center"
+												/>
+											{:else}
+												<img
+													src={post.profilePicture}
+													alt="Default Profile Pic"
+													class="w-8 h-8 rounded-sm self-center"
+												/>
+											{/if}
 											<div class="pl-3">
 												<p class="font-bold">
 													{post.email}
