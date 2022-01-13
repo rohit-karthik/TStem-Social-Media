@@ -356,14 +356,15 @@
 		if (e.target.files || e.target.files.length != 0) {
 			console.log(file);
 			console.log(file.name.split(".").pop());
-			const fileExt = file.name.split(".").pop();
-			const fileName = `${userSess.id}/profile-picture.${fileExt}`;
+			const fileExt = "png"; //file.name.split(".").pop();
+			const fileName = `${userSess.id}/profile-picture.png`;
 			const { data, error } = await supabase.storage
 				.from("profile-pics")
 				.upload(fileName, file, {
-					cacheControl: "3600",
-					upsert: false,
+					cacheControl: "0",
+					upsert: true,
 				});
+			console.log(data)
 		}
 	}
 
@@ -373,8 +374,7 @@
 				`https://tymaawbbrmoeljisdgry.supabase.co/storage/v1/object/public/profile-pics/${userSess.id}/profile-picture.png`
 			);
 			profilePic = `https://tymaawbbrmoeljisdgry.supabase.co/storage/v1/object/public/profile-pics/${userSess.id}/profile-picture.png`;
-		} catch {
-		}
+		} catch {}
 	}
 </script>
 
