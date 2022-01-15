@@ -6,7 +6,7 @@
 	let profilePic =
 		"https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png";
 
-	let chatOrTodo = "profile";
+	let chatOrTodo = "chat";
 
 	let newChannel = "";
 	let channels = [];
@@ -156,6 +156,19 @@
 				errorMsg = "";
 			}, 1500);
 		} else {
+			//console.log(profilePic)
+			let postDate = new Date();
+			let postMinutes = 8//postDate.getMinutes();
+			let postHours = postDate.getHours()
+			let amPm = ' AM';
+			let addOn = '';
+			if (postMinutes < 10) {
+				addOn = '0'
+			}
+			if (postHours > 12) {
+				postHours -= 12;
+				amPm = ' PM'
+			}
 			await supabase.from("posts").insert([
 				{
 					name: name,
@@ -163,6 +176,17 @@
 					email: userSess.email,
 					channel: channelName,
 					profilePicture: profilePic,
+					createdAt:
+						postDate.getMonth() +
+						1 +
+						"/" +
+						postDate.getDate() +
+						" " +
+						postHours +
+						":" +
+						addOn + 
+						postMinutes +
+						amPm
 				},
 			]);
 			name = "";
@@ -369,16 +393,19 @@
 					cacheControl: "0",
 					upsert: true,
 				});
+			location.reload();
 			console.log(data);
 		}
 	}
 
 	async function downloadProfilePic() {
 		try {
-			await fetch(
+			const res = await fetch(
 				`https://tymaawbbrmoeljisdgry.supabase.co/storage/v1/object/public/profile-pics/${userSess.id}/profile-picture.png`
 			);
-			profilePic = `https://tymaawbbrmoeljisdgry.supabase.co/storage/v1/object/public/profile-pics/${userSess.id}/profile-picture.png`;
+			if (res.status != 400) {
+				profilePic = `https://tymaawbbrmoeljisdgry.supabase.co/storage/v1/object/public/profile-pics/${userSess.id}/profile-picture.png`;
+			}
 		} catch {}
 	}
 </script>
@@ -480,7 +507,7 @@
 								<div class="flex flex-col">
 									{#each posts as post}
 										<div class="flex flex-row pl-1">
-											{#if post.profilePicture == null}
+											{#if !post.profilePicture}
 												<img
 													src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
 													alt="Default Profile Pic"
@@ -494,9 +521,16 @@
 												/>
 											{/if}
 											<div class="pl-3">
-												<p class="font-bold">
-													{post.email}
-												</p>
+												<div class="flex">
+													<p class="font-bold">
+														{post.email}
+													</p>
+													<p class="mx-2 text-gray-500">
+														{#if post.createdAt != null}
+															{post.createdAt}
+														{/if}
+													</p>
+												</div>
 												<p>{post.description}</p>
 												<div class="flex">
 													<p>
@@ -512,8 +546,7 @@
 																	post.description,
 																	post.email
 																);
-															}}
-															>Delete this post</button
+															}}>Delete</button
 														>
 													{/if}
 												</div>
