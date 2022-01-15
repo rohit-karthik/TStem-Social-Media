@@ -158,7 +158,7 @@
 		} else {
 			//console.log(profilePic)
 			let postDate = new Date();
-			let postMinutes = 8//postDate.getMinutes();
+			let postMinutes = postDate.getMinutes();
 			let postHours = postDate.getHours()
 			let amPm = ' AM';
 			let addOn = '';
@@ -503,7 +503,7 @@
 									>
 								</div>
 							</div>
-							<div class="pt-10 pb-12 flex">
+							<div class="pt-10 flex" style="padding-bottom: 3.2rem;">
 								<div class="flex flex-col">
 									{#each posts as post}
 										<div class="flex flex-row pl-1">
@@ -520,7 +520,7 @@
 													class="w-8 h-8 rounded-sm self-center"
 												/>
 											{/if}
-											<div class="pl-3">
+											<div class="pl-3 w-fit">
 												<div class="flex">
 													<p class="font-bold">
 														{post.email}
@@ -552,7 +552,6 @@
 												</div>
 											</div>
 										</div>
-										<hr />
 									{/each}
 								</div>
 							</div>
