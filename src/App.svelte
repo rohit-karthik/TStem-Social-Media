@@ -3,6 +3,8 @@
 	let name = "";
 	let desc = "";
 
+	let userFiles = [];
+
 	let profilePic =
 		"https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png";
 
@@ -64,7 +66,7 @@
 
 			//console.log(latestPost.data[0].name)
 			console.log(s);
-			if (latestPost.data == []) {
+			if (latestPost.data == [] && latestPost.data[0].name != null) {
 				if (
 					latestPost.data[0].name.includes(s) ||
 					latestPost.data[0].description.includes(s)
@@ -111,14 +113,16 @@
 
 			console.log(latestPost.data[0].name);
 			console.log(s);
-			if (
-				latestPost.data[0].name.includes(s) ||
-				latestPost.data[0].description.includes(s)
-			) {
-				console.log("mentioned");
-				Notification.requestPermission();
-				new Notification("You got mentioned! Check the chat.");
-				console.log("mentioned");
+			if (latestPost.data[0].name != null) {
+				if (
+					latestPost.data[0].name.includes(s) ||
+					latestPost.data[0].description.includes(s)
+				) {
+					console.log("mentioned");
+					Notification.requestPermission();
+					new Notification("You got mentioned! Check the chat.");
+					console.log("mentioned");
+				}
 			}
 			todos = [];
 			const res2 = await supabase
@@ -159,16 +163,21 @@
 			//console.log(profilePic)
 			let postDate = new Date();
 			let postMinutes = postDate.getMinutes();
-			let postHours = postDate.getHours()
-			let amPm = ' AM';
-			let addOn = '';
+			let postHours = postDate.getHours();
+			let amPm = " AM";
+			let addOn = "";
 			if (postMinutes < 10) {
-				addOn = '0'
+				addOn = "0";
 			}
 			if (postHours > 12) {
 				postHours -= 12;
-				amPm = ' PM'
+				amPm = " PM";
+			} else if (postHours == 12) {
+				amPm = " PM";
+			} else if (postHours == 0) {
+				postHours += 12;
 			}
+
 			await supabase.from("posts").insert([
 				{
 					name: name,
@@ -184,9 +193,9 @@
 						" " +
 						postHours +
 						":" +
-						addOn + 
+						addOn +
 						postMinutes +
-						amPm
+						amPm,
 				},
 			]);
 			name = "";
@@ -252,8 +261,8 @@
 		errorMsg = "";
 		deleting = true;
 		await supabase.from("posts").delete().match({
-			name: postN,
-			description: postD,
+			//name: postN,
+			//description: postD,
 			id: postI,
 		});
 		await getData();
@@ -408,6 +417,87 @@
 			}
 		} catch {}
 	}
+
+	async function uploadFiles(e) {
+		let filesArr = [];
+		let filePaths = [];
+		console.log(e.target.files);
+		if (e.target.files || e.target.files.length != 0) {
+			const { data, error } = await supabase.storage
+				.from("user-files")
+				.list(activeChannel);
+			console.log(data);
+			for (let i = 0; i < e.target.files.length; i++) {
+				let fileName = e.target.files[i].name;
+				let addOn = 0;
+				for (let j = 0; j < data.length; j++) {
+					if (fileName == data[j].name) {
+						fileName =
+							fileName.substring(0, fileName.lastIndexOf(".")) +
+							`-${addOn}` +
+							fileName.substring(fileName.lastIndexOf("."));
+						j = -1;
+						addOn++;
+						continue;
+					}
+				}
+				filesArr.push(fileName);
+				filePaths.push(
+					`https://tymaawbbrmoeljisdgry.supabase.co/storage/v1/object/public/user-files/${activeChannel}/${fileName}`
+				);
+			}
+			for (let i = 0; i < e.target.files.length; i++) {
+				const { data, error } = await supabase.storage
+					.from("user-files")
+					.upload(
+						`${activeChannel}/${filesArr[i]}`,
+						e.target.files[i],
+						{
+							cacheControl: "0",
+							upsert: false,
+						}
+					);
+			}
+
+			let postDate = new Date();
+			let postMinutes = postDate.getMinutes();
+			let postHours = postDate.getHours();
+			let amPm = " AM";
+			let addOn = "";
+			if (postMinutes < 10) {
+				addOn = "0";
+			}
+			if (postHours > 12) {
+				postHours -= 12;
+				amPm = " PM";
+			} else if (postHours == 12) {
+				amPm = " PM";
+			} else if (postHours == 0) {
+				postHours += 12;
+			}
+
+			const { data1, error1 } = await supabase.from("posts").insert([
+				{
+					email: userSess.email,
+					channel: activeChannel,
+					profilePicture: profilePic,
+					isFile: true,
+					createdAt:
+						postDate.getMonth() +
+						1 +
+						"/" +
+						postDate.getDate() +
+						" " +
+						postHours +
+						":" +
+						addOn +
+						postMinutes +
+						amPm,
+					files: filePaths,
+				},
+			]);
+		}
+	}
 </script>
 
 <div class="flex overflow-auto flex-col-reverse h-screen">
@@ -503,7 +593,10 @@
 									>
 								</div>
 							</div>
-							<div class="pt-10 flex" style="padding-bottom: 3.2rem;">
+							<div
+								class="pt-10 flex"
+								style="padding-bottom: 3.2rem;"
+							>
 								<div class="flex flex-col">
 									{#each posts as post}
 										<div class="flex flex-row pl-1">
@@ -525,17 +618,59 @@
 													<p class="font-bold">
 														{post.email}
 													</p>
-													<p class="mx-2 text-gray-500">
+													<p
+														class="mx-2 text-gray-500"
+													>
 														{#if post.createdAt != null}
 															{post.createdAt}
 														{/if}
 													</p>
 												</div>
-												<p>{post.description}</p>
+												{#if post.description != null}
+													<p>{post.description}</p>
+												{/if}
 												<div class="flex">
-													<p>
-														{post.name}
-													</p>
+													{#if post.description != null}
+														<p>
+															{post.name}
+														</p>
+													{:else if post.files != null}
+														{#each post.files as file}
+															<div
+																class="rounded-md border-2 p-1 m-1 flex border-black"
+															>
+																{#if file.endsWith(".png") || file.endsWith(".jpg") || file.endsWith(".jpeg")}
+																	<img
+																		src={file}
+																		alt="File"
+																	/>
+																{:else}
+																	<svg
+																		xmlns="http://www.w3.org/2000/svg"
+																		class="h-6 w-6"
+																		fill="none"
+																		viewBox="0 0 24 24"
+																		stroke="currentColor"
+																	>
+																		<path
+																			stroke-linecap="round"
+																			stroke-linejoin="round"
+																			stroke-width="2"
+																			d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+																		/>
+																	</svg>
+																	<a
+																		href={file}
+																		download
+																		>{file.replace(
+																			`https://tymaawbbrmoeljisdgry.supabase.co/storage/v1/object/public/user-files/${activeChannel}/`,
+																			""
+																		)}</a
+																	>
+																{/if}
+															</div>
+														{/each}
+													{/if}
 													{#if userSess.email.toLowerCase() == post.email}
 														<button
 															class="ml-3 text-red-500"
@@ -556,19 +691,43 @@
 								</div>
 							</div>
 							<div class="fixed bottom-0">
-								<div class="bg-white w-screen">
+								<div class="bg-white w-screen flex">
 									<p style="color: red;">{errorMsg}</p>
-									<input
+									<label
+										class="bg-gray-100 h-11 w-11 p-0 self-center rounded-md"
+									>
+										<input
+											type="file"
+											hidden
+											multiple
+											on:change={uploadFiles}
+										/>
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											class="h-11 w-11"
+											fill="none"
+											viewBox="0 0 24 24"
+											stroke="currentColor"
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth={2}
+												d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+											/>
+										</svg>
+									</label>
+									<textarea
 										placeholder="Text (required): "
 										bind:value={name}
 										on:keydown={handleKeydown}
-										class="border-2 p-2 m-1 rounded-md w-7/12"
+										class="border-2 p-2 m-1 rounded-md w-5/12 resize-none h-11"
 									/>
 									<button
 										on:click={() => {
 											addPost(activeChannel);
 										}}
-										class="bg-emerald-400 p-2 m-1 shadow-xl rounded-md"
+										class="bg-emerald-400 p-2 m-1 shadow-xl rounded-md h-11"
 										>Send</button
 									>
 								</div>
