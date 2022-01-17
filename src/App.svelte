@@ -5,6 +5,8 @@
 
 	let userFiles = [];
 
+	let adminEmail = "";
+
 	let profilePic =
 		"https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png";
 
@@ -14,6 +16,9 @@
 	let channels = [];
 	let activeChannel = "null";
 	let newEmail = "";
+
+	let oldPassword = "";
+	let newPassword = "";
 
 	let completedTodos = [];
 	let todos = [];
@@ -302,7 +307,7 @@
 		deleting = false;
 	}
 
-	async function signUp(email, password) {
+	async function signUp(email, password, isAdmin) {
 		const { user, session, error } = await supabase.auth.signUp({
 			email: email,
 			password: password,
@@ -311,7 +316,11 @@
 			errorMsg = error.message;
 		} else {
 			errorMsg = "";
-			userSess = user;
+			if (!isAdmin) {
+				userSess = user;
+			} else {
+				adminEmail = "";
+			}
 			signedIn = true;
 			//localStorage.signedIn = true
 		}
@@ -434,7 +443,7 @@
 		let filesArr = [];
 		let filePaths = [];
 		console.log(e.target.files[0]);
-		
+
 		if (e.target.files || e.target.files.length != 0) {
 			const { data, error } = await supabase.storage
 				.from("user-files")
@@ -965,6 +974,37 @@
 								accept="image/*"
 								on:change={uploadProfilePic}
 							/>
+							<p class="pt-5 text-xl">Update your password:</p>
+							<input
+								placeholder="New Password: "
+								type="password"
+								bind:value={newPassword}
+								class="border-2 p-2 m-1 rounded-md"
+							/>
+							<button
+								class="p-2 m-1 rounded-md bg-red-500 text-white"
+								on:click={async () => {
+									const { user, error } =
+										await supabase.auth.update({
+											password: newPassword,
+										});
+									location.reload();
+								}}>Update</button
+							>
+							{#if userSess.email == "rohit.karthik@outlook.com" || userSess.email == "s-rkarthik@lwsd.org"}
+								<input
+									type="email"
+									placeholder="New User Email: "
+									bind:value={adminEmail}
+									class="border-2 p-2 m-1 rounded-md"
+								/>
+								<button
+									class="bg-emerald-400 shadow-sm shadow-emerald-400 p-2 m-1 rounded-md"
+									on:click={() => {
+										signUp(adminEmail, "password", true);
+									}}>Add user</button
+								>
+							{/if}
 						</div>
 					{/if}
 					<div
@@ -1034,14 +1074,16 @@
 			<button
 				class="bg-emerald-400 shadow-sm shadow-emerald-400 p-2 m-1 rounded-md"
 				on:click={() => {
-					signUp(email, pass);
-				}}>Sign up!</button
+					window.open(
+						`mailto:s-rkarthik@lwsd.org?subject=I'd like to sign up for the chat app!&body=I'd like to sign up for the chat app! Here's the email I would like to use: ${email}.`
+					);
+				}}>Verify for Sign Up</button
 			>
 			<button
 				class="border-2 border-emerald-400 p-2 m-1 rounded-md"
 				on:click={() => {
 					signIn(email, pass);
-				}}>Sign In!</button
+				}}>Sign In</button
 			>
 			<p style="color: red;">{errorMsg}</p>
 		</div>
