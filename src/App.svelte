@@ -155,7 +155,7 @@
 
 	async function addPost(channelName) {
 		if (name == "") {
-			errorMsg = "Please enter a post name!";
+			errorMsg = "Please enter your message!";
 			setTimeout(() => {
 				errorMsg = "";
 			}, 1500);
@@ -205,7 +205,7 @@
 
 	async function addTodo(channelName) {
 		if (name == "") {
-			errorMsg = "Please enter a post name!";
+			errorMsg = "Please enter a name!";
 			setTimeout(() => {
 				errorMsg = "";
 			}, 1500);
@@ -257,7 +257,7 @@
 			.eq("name", activeChannel);
 	}
 
-	async function deletePost(postI, postN, postD, postE) {
+	async function deletePost(postI, postN, postD, postE, isFile, postFiles) {
 		errorMsg = "";
 		deleting = true;
 		await supabase.from("posts").delete().match({
@@ -265,6 +265,18 @@
 			//description: postD,
 			id: postI,
 		});
+		if (isFile) {
+			for (let i = 0; i < postFiles.length; i++) {
+				const { data, error } = await supabase.storage
+					.from("user-files")
+					.remove([
+						postFiles[i].replace(
+							`https://tymaawbbrmoeljisdgry.supabase.co/storage/v1/object/public/user-files/`,
+							""
+						),
+					]);
+			}
+		}
 		await getData();
 		deleting = false;
 	}
@@ -421,12 +433,14 @@
 	async function uploadFiles(e) {
 		let filesArr = [];
 		let filePaths = [];
-		console.log(e.target.files);
+		console.log(e.target.files[0]);
+		
 		if (e.target.files || e.target.files.length != 0) {
 			const { data, error } = await supabase.storage
 				.from("user-files")
 				.list(activeChannel);
-			console.log(data);
+			//console.log(data);
+			errorMsg = "Uploading Files...";
 			for (let i = 0; i < e.target.files.length; i++) {
 				let fileName = e.target.files[i].name;
 				let addOn = 0;
@@ -496,8 +510,90 @@
 					files: filePaths,
 				},
 			]);
+
+			errorMsg = "";
 		}
 	}
+
+	/*document.addEventListener("paste", async (e) => {
+		console.log(typeof e.clipboardData.files[0]);
+		if (e.clipboardData.files.length) {
+			let filePaths = [];
+
+			let fileName = e.clipboardData.files[0].name;
+			let addOn = 0;
+			const { data, error } = await supabase.storage
+				.from("user-files")
+				.list(activeChannel);
+			errorMsg = "Uploading Files...";
+			for (let j = 0; j < data.length; j++) {
+				if (fileName == data[j].name) {
+					fileName =
+						fileName.substring(0, fileName.lastIndexOf(".")) +
+						`-${addOn}` +
+						fileName.substring(fileName.lastIndexOf("."));
+					j = -1;
+					addOn++;
+					continue;
+				}
+			}
+			filePaths.push(
+				`https://tymaawbbrmoeljisdgry.supabase.co/storage/v1/object/public/user-files/${activeChannel}/${fileName}`
+			);
+
+			const { data1, error1 } = await supabase.storage
+				.from("user-files")
+				.upload(
+					`${activeChannel}/${fileName}`,
+					e.clipboardData.files[0],
+					{
+						cacheControl: "0",
+						contentType: "image/png",
+						upsert: false,
+					}
+				);
+
+			let postDate = new Date();
+			let postMinutes = postDate.getMinutes();
+			let postHours = postDate.getHours();
+			let amPm = " AM";
+			let addOn2 = "";
+			if (postMinutes < 10) {
+				addOn = "0";
+			}
+			if (postHours > 12) {
+				postHours -= 12;
+				amPm = " PM";
+			} else if (postHours == 12) {
+				amPm = " PM";
+			} else if (postHours == 0) {
+				postHours += 12;
+			}
+
+			const { data2, error2 } = await supabase.from("posts").insert([
+				{
+					email: userSess.email,
+					channel: activeChannel,
+					profilePicture: profilePic,
+					isFile: true,
+					createdAt:
+						postDate.getMonth() +
+						1 +
+						"/" +
+						postDate.getDate() +
+						" " +
+						postHours +
+						":" +
+						addOn2 +
+						postMinutes +
+						amPm,
+					files: filePaths,
+				},
+			]);
+
+			errorMsg = "";
+		}
+	});*/
 </script>
 
 <div class="flex overflow-auto flex-col-reverse h-screen">
@@ -508,7 +604,7 @@
 			</div>
 		{:then}
 			{#if !deleting}
-				<div class="flex flex-row bg-white">
+				<div class="flex flex-row ">
 					<div
 						class="w-2/12 fixed left-0 top-0 h-screen text-white"
 						style="background-color: #39133D;"
@@ -636,15 +732,15 @@
 														</p>
 													{:else if post.files != null}
 														{#each post.files as file}
-															<div
-																class="rounded-md border-2 p-1 m-1 flex border-black"
-															>
-																{#if file.endsWith(".png") || file.endsWith(".jpg") || file.endsWith(".jpeg")}
-																	<img
-																		src={file}
-																		alt="File"
-																	/>
-																{:else}
+															{#if file.endsWith(".png") || file.endsWith(".jpg") || file.endsWith(".jpeg")}
+																<img
+																	src={file}
+																	alt="File"
+																/>
+															{:else}
+																<div
+																	class="rounded-md border-2 p-1 m-1 flex border-black max-h-16"
+																>
 																	<svg
 																		xmlns="http://www.w3.org/2000/svg"
 																		class="h-6 w-6"
@@ -667,8 +763,8 @@
 																			""
 																		)}</a
 																	>
-																{/if}
-															</div>
+																</div>
+															{/if}
 														{/each}
 													{/if}
 													{#if userSess.email.toLowerCase() == post.email}
@@ -679,7 +775,9 @@
 																	post.id,
 																	post.name,
 																	post.description,
-																	post.email
+																	post.email,
+																	post.isFile,
+																	post.files
 																);
 															}}>Delete</button
 														>
@@ -691,8 +789,10 @@
 								</div>
 							</div>
 							<div class="fixed bottom-0">
-								<div class="bg-white w-screen flex">
+								<div class="bg-white w-screen flex bottom-12">
 									<p style="color: red;">{errorMsg}</p>
+								</div>
+								<div class="bg-white w-screen flex">
 									<label
 										class="bg-gray-100 h-11 w-11 p-0 self-center rounded-md"
 									>
@@ -717,7 +817,7 @@
 											/>
 										</svg>
 									</label>
-									<textarea
+									<input
 										placeholder="Text (required): "
 										bind:value={name}
 										on:keydown={handleKeydown}
