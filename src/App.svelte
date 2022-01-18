@@ -453,14 +453,14 @@
 
 	function openSidebar() {
 		if (opened) {
-			document.getElementById("sidebar").classList.remove("w-1/6");
-			document.getElementById("mainContent").classList.remove("w-4/6");
+			document.getElementById("sidebar").style.width = "0%"
+			document.getElementById("mainContent").style.width = "100%";
 			document.getElementById("switchButton").style.right = "3rem";
 			document.getElementById("infoButton").style.right = "0.25rem";
 			opened = false;
 		} else {
-			document.getElementById("sidebar").classList.add("w-1/6");
-			document.getElementById("mainContent").classList.add("w-4/6");
+			document.getElementById("sidebar").style.width = "16.666666667%";
+			document.getElementById("mainContent").style.width = "66.66666666667";
 			document.getElementById("switchButton").style.right = "18.75rem";
 			document.getElementById("infoButton").style.right = "16rem";
 			opened = true;
