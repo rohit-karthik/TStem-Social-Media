@@ -7,6 +7,8 @@
 
 	let adminEmail = "";
 
+	let newName = "";
+
 	let profilePic =
 		"https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png";
 
@@ -14,6 +16,7 @@
 
 	let newChannel = "";
 	let channels = [];
+	let channelData = [];
 	let activeChannel = "null";
 	let newEmail = "";
 
@@ -47,9 +50,13 @@
 		const res2 = await supabase.from("channels").select("*");
 		await downloadProfilePic();
 		channels = [];
+		channelData = [];
 		for (var i in res2.data) {
 			if (res2.data[i].access.includes(userSess.email)) {
 				channels = [...channels, res2.data[i].name];
+			}
+			if (res2.data[i].name == activeChannel) {
+				channelData = res2.data[i].access;
 			}
 		}
 
@@ -67,6 +74,21 @@
 				.order("id", { ascending: false });
 
 			console.log(latestPost);
+
+			let s2 = null;
+
+			const nameMentions = await supabase
+				.from("users")
+				.select("*")
+				.eq("email", userSess.email)
+
+			console.log(nameMentions);
+			if (nameMentions.data.length != 0) {
+				if (nameMentions.data[0].name != null) {
+					s2 = '@"'.concat(nameMentions.data[0].name, '"')
+				}
+			}
+
 			let s = '@"'.concat(userSess.email, '"');
 
 			//console.log(latestPost.data[0].name)
@@ -74,7 +96,8 @@
 			if (latestPost.data == [] && latestPost.data[0].name != null) {
 				if (
 					latestPost.data[0].name.includes(s) ||
-					latestPost.data[0].description.includes(s)
+					latestPost.data[0].description.includes(s) ||
+					latestPost.data[0].name.includes(s2)
 				) {
 					console.log("mentioned");
 					Notification.requestPermission();
@@ -114,6 +137,21 @@
 				.order("id", { ascending: false });
 
 			console.log(latestPost);
+
+			let s2 = null;
+
+			const nameMentions = await supabase
+				.from("users")
+				.select("*")
+				.eq("email", userSess.email)
+
+			console.log(nameMentions);
+			if (nameMentions.data.length != 0) {
+				if (nameMentions.data[0].name != null) {
+					s2 = '@"'.concat(nameMentions.data[0].name, '"')
+				}
+			}
+
 			let s = '@"'.concat(userSess.email, '"');
 
 			console.log(latestPost.data[0].name);
@@ -121,7 +159,8 @@
 			if (latestPost.data[0].name != null) {
 				if (
 					latestPost.data[0].name.includes(s) ||
-					latestPost.data[0].description.includes(s)
+					latestPost.data[0].description.includes(s) ||
+					latestPost.data[0].name.includes(s2)
 				) {
 					console.log("mentioned");
 					Notification.requestPermission();
@@ -183,6 +222,19 @@
 				postHours += 12;
 			}
 
+			let valueForName = null;
+
+			const { data, error } = await supabase
+				.from("users")
+				.select()
+				.eq("email", userSess.email);
+			//console.log(data);
+			if (data.length != 0) {
+				if (data[0].name != null) {
+					valueForName = data[0].name;
+				}
+			}
+
 			await supabase.from("posts").insert([
 				{
 					name: name,
@@ -201,6 +253,7 @@
 						addOn +
 						postMinutes +
 						amPm,
+					personName: valueForName,
 				},
 			]);
 			name = "";
@@ -262,6 +315,25 @@
 			.eq("name", activeChannel);
 	}
 
+	async function removePerson() {
+		console.log(activeChannel);
+		const res = await supabase
+			.from("channels")
+			.select("*")
+			.eq("name", activeChannel);
+		console.log(res.data);
+
+		const newStr = res.data[0].access.replace(newEmail, "");
+		console.log(newStr);
+
+		await supabase
+			.from("channels")
+			.update({
+				access: newStr,
+			})
+			.eq("name", activeChannel);
+	}
+
 	async function deletePost(postI, postN, postD, postE, isFile, postFiles) {
 		errorMsg = "";
 		deleting = true;
@@ -303,6 +375,7 @@
 		await supabase.from("channels").delete().match({
 			name: activeChannel,
 		});
+		await supabase.from("posts").delete().match({ channel: activeChannel });
 		location.reload();
 		deleting = false;
 	}
@@ -524,6 +597,27 @@
 		}
 	}
 
+	let timeout;
+
+	/*document.onmousemove = async function () {
+		clearTimeout(timeout);
+		timeout = setTimeout(async function () {
+			const { data, error } = await supabase
+				.from("users")
+				.select()
+				.eq("email", userSess.email);
+			console.log(data);
+			if (data[0].status != "away") {
+				console.log("here");
+				const { data1, error1 } = await supabase.from("users").upsert({
+					id: data[0].id,
+					email: userSess.email,
+					status: "away",
+				});
+			}
+		}, 5000);
+	};*/
+
 	/*document.addEventListener("paste", async (e) => {
 		console.log(typeof e.clipboardData.files[0]);
 		if (e.clipboardData.files.length) {
@@ -721,7 +815,9 @@
 											<div class="pl-3 w-fit">
 												<div class="flex">
 													<p class="font-bold">
-														{post.email}
+														{post.personName != null
+															? post.personName
+															: post.email}
 													</p>
 													<p
 														class="mx-2 text-gray-500"
@@ -991,6 +1087,42 @@
 									location.reload();
 								}}>Update</button
 							>
+							<p class="pt-5 text-xl">Set your Display Name:</p>
+							<input
+								placeholder="New Name: "
+								bind:value={newName}
+								class="border-2 p-2 m-1 rounded-md"
+							/>
+							<button
+								class="p-2 m-1 rounded-md bg-emerald-500"
+								on:click={async () => {
+									const { data, error } = await supabase
+										.from("users")
+										.select()
+										.eq("email", userSess.email);
+									console.log(data);
+									if (data.length != 0) {
+										console.log("here");
+										const { data1, error1 } = await supabase
+											.from("users")
+											.upsert({
+												id: data[0].id,
+												email: userSess.email,
+												status: "online",
+												name: newName,
+											});
+									} else {
+										const { data1, error1 } = await supabase
+											.from("users")
+											.insert({
+												email: userSess.email,
+												status: "online",
+												name: newName,
+											});
+									}
+									location.reload();
+								}}>Update</button
+							>
 							{#if userSess.email == "rohit.karthik@outlook.com" || userSess.email == "s-rkarthik@lwsd.org"}
 								<input
 									type="email"
@@ -1013,14 +1145,28 @@
 						id="sidebar"
 					>
 						{#if activeChannel != "null"}
-							<button
-								class="p-2 m-1 rounded-md bg-emerald-400 shadow-lg"
-								on:click={async () => {
-									await addPerson();
-									newEmail = "";
-									await getData();
-								}}>Add a Person to this Channel</button
-							>
+							<p class="font-bold text-xl m-1">Members:</p>
+							<p class="m-1">
+								{channelData}
+							</p>
+							<div class="flex">
+								<button
+									class="p-2 m-1 rounded-md bg-emerald-400 shadow-lg"
+									on:click={async () => {
+										await addPerson();
+										newEmail = "";
+										await getData();
+									}}>+ Add Person</button
+								>
+								<button
+									class="p-2 m-1 rounded-md bg-red-500 shadow-lg"
+									on:click={async () => {
+										await removePerson();
+										newEmail = "";
+										await getData();
+									}}>+ Remove Person</button
+								>
+							</div>
 							<input
 								placeholder="Email of Person: "
 								bind:value={newEmail}
