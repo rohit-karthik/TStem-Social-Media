@@ -80,12 +80,12 @@
 			const nameMentions = await supabase
 				.from("users")
 				.select("*")
-				.eq("email", userSess.email)
+				.eq("email", userSess.email);
 
 			console.log(nameMentions);
 			if (nameMentions.data.length != 0) {
 				if (nameMentions.data[0].name != null) {
-					s2 = '@"'.concat(nameMentions.data[0].name, '"')
+					s2 = '@"'.concat(nameMentions.data[0].name, '"');
 				}
 			}
 
@@ -143,12 +143,12 @@
 			const nameMentions = await supabase
 				.from("users")
 				.select("*")
-				.eq("email", userSess.email)
+				.eq("email", userSess.email);
 
 			console.log(nameMentions);
 			if (nameMentions.data.length != 0) {
 				if (nameMentions.data[0].name != null) {
-					s2 = '@"'.concat(nameMentions.data[0].name, '"')
+					s2 = '@"'.concat(nameMentions.data[0].name, '"');
 				}
 			}
 
@@ -453,14 +453,14 @@
 
 	function openSidebar() {
 		if (opened) {
-			document.getElementById("sidebar").style.width = "0%";
-			document.getElementById("mainContent").style.width = "100%";
+			document.getElementById("sidebar").classList.remove("w-1/6");
+			document.getElementById("mainContent").classList.remove("w-4/6");
 			document.getElementById("switchButton").style.right = "3rem";
 			document.getElementById("infoButton").style.right = "0.25rem";
 			opened = false;
 		} else {
-			document.getElementById("sidebar").style.width = "16.666667%";
-			document.getElementById("mainContent").style.width = "66.666667%";
+			document.getElementById("sidebar").classList.add("w-1/6");
+			document.getElementById("mainContent").classList.add("w-4/6");
 			document.getElementById("switchButton").style.right = "18.75rem";
 			document.getElementById("infoButton").style.right = "16rem";
 			opened = true;
@@ -699,7 +699,7 @@
 	});*/
 </script>
 
-<div class="flex overflow-auto flex-col-reverse h-screen">
+<div class="flex overflow-auto overflow-x-auto flex-col-reverse h-screen">
 	{#if userSess !== null}
 		{#await getData()}
 			<div class="flex justify-center items-center h-screen">
@@ -768,7 +768,7 @@
 						>
 					</div>
 					{#if chatOrTodo == "chat"}
-						<div class="ml-64" id="mainContent" style="width: 100%">
+						<div class="ml-64 w-screen" id="mainContent">
 							<div class="fixed top-0">
 								<div class="bg-white w-screen p-2">
 									<p>
@@ -1042,7 +1042,7 @@
 						</div>
 					{:else}
 						<div
-							class="flex flex-col h-screen w-10/12 justify-center items-center fixed top-0 ml-64"
+							class="flex flex-col w-10/12 justify-center items-center ml-64 m-3"
 						>
 							<button
 								class="p-5"
