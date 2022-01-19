@@ -572,12 +572,24 @@
 				postHours += 12;
 			}
 
-			const { data1, error1 } = await supabase.from("posts").insert([
+			let valueForName = null;
+
+			const newRes = await supabase
+				.from("users")
+				.select()
+				.eq("email", userSess.email);
+			
+			if (newRes.data.length != 0) {
+				if (newRes.data[0].name != null) {
+					valueForName = newRes.data[0].name;
+				}
+			}
+
+			await supabase.from("posts").insert([
 				{
 					email: userSess.email,
 					channel: activeChannel,
 					profilePicture: profilePic,
-					isFile: true,
 					createdAt:
 						postDate.getMonth() +
 						1 +
@@ -590,8 +602,8 @@
 						postMinutes +
 						amPm,
 					files: filePaths,
-				},
-			]);
+					personName: valueForName,
+				}]);
 
 			errorMsg = "";
 		}
