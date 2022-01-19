@@ -93,7 +93,7 @@
 
 			//console.log(latestPost.data[0].name)
 			console.log(s);
-			if (latestPost.data == [] && latestPost.data[0].name != null) {
+			if (latestPost.data.length != 0 && latestPost.data[0].name != null) {
 				if (
 					latestPost.data[0].name.includes(s) ||
 					latestPost.data[0].description.includes(s) ||
@@ -156,7 +156,7 @@
 
 			console.log(latestPost.data[0].name);
 			console.log(s);
-			if (latestPost.data[0].name != null) {
+			if (latestPost.data.length != 0 && latestPost.data[0].name != null) {
 				if (
 					latestPost.data[0].name.includes(s) ||
 					latestPost.data[0].description.includes(s) ||
