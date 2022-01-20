@@ -93,7 +93,10 @@
 
 			//console.log(latestPost.data[0].name)
 			console.log(s);
-			if (latestPost.data.length != 0 && latestPost.data[0].name != null) {
+			if (
+				latestPost.data.length != 0 &&
+				latestPost.data[0].name != null
+			) {
 				if (
 					latestPost.data[0].name.includes(s) ||
 					latestPost.data[0].description.includes(s) ||
@@ -156,7 +159,10 @@
 
 			console.log(latestPost.data[0].name);
 			console.log(s);
-			if (latestPost.data.length != 0 && latestPost.data[0].name != null) {
+			if (
+				latestPost.data.length != 0 &&
+				latestPost.data[0].name != null
+			) {
 				if (
 					latestPost.data[0].name.includes(s) ||
 					latestPost.data[0].description.includes(s) ||
@@ -453,14 +459,15 @@
 
 	function openSidebar() {
 		if (opened) {
-			document.getElementById("sidebar").style.width = "0%"
+			document.getElementById("sidebar").style.width = "0%";
 			document.getElementById("mainContent").style.width = "100%";
 			document.getElementById("switchButton").style.right = "3rem";
 			document.getElementById("infoButton").style.right = "0.25rem";
 			opened = false;
 		} else {
 			document.getElementById("sidebar").style.width = "16.666666667%";
-			document.getElementById("mainContent").style.width = "66.66666666667";
+			document.getElementById("mainContent").style.width =
+				"66.66666666667";
 			document.getElementById("switchButton").style.right = "18.75rem";
 			document.getElementById("infoButton").style.right = "16rem";
 			opened = true;
@@ -499,6 +506,25 @@
 			location.reload();
 			console.log(data);
 		}
+	}
+
+	async function removeProfilePic() {
+		const fileName = `${userSess.id}/profile-picture.png`;
+
+		const response = await fetch(
+			"https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png"
+		);
+		// here image is url/location of image
+		const blob = await response.blob();
+		const file = new File([blob], "image.jpg", { type: blob.type });
+
+		const { data, error } = await supabase.storage
+			.from("profile-pics")
+			.upload(fileName, file, {
+				cacheControl: "0",
+				upsert: true,
+			});
+		location.reload();
 	}
 
 	async function downloadProfilePic() {
@@ -578,7 +604,7 @@
 				.from("users")
 				.select()
 				.eq("email", userSess.email);
-			
+
 			if (newRes.data.length != 0) {
 				if (newRes.data[0].name != null) {
 					valueForName = newRes.data[0].name;
@@ -603,7 +629,8 @@
 						amPm,
 					files: filePaths,
 					personName: valueForName,
-				}]);
+				},
+			]);
 
 			errorMsg = "";
 		}
@@ -1082,6 +1109,11 @@
 								accept="image/*"
 								on:change={uploadProfilePic}
 							/>
+							<button
+								class="p-2 m-1 mt-3 rounded-md bg-red-500 text-white"
+								on:click={removeProfilePic}
+								>Delete Profile Pic</button
+							>
 							<p class="pt-5 text-xl">Update your password:</p>
 							<input
 								placeholder="New Password: "
