@@ -17,7 +17,9 @@
 	let newChannel = "";
 	let channels = [];
 	let channelData = [];
+
 	let activeChannel = "null";
+	
 	let newEmail = "";
 
 	let oldPassword = "";
@@ -70,7 +72,6 @@
 			const latestPost = await supabase
 				.from("posts")
 				.select("*")
-				.eq("channel", activeChannel)
 				.order("id", { ascending: false });
 
 			console.log(latestPost);
@@ -104,7 +105,15 @@
 				) {
 					console.log("mentioned");
 					Notification.requestPermission();
-					new Notification("You got mentioned! Check the chat.");
+					let newNotif = new Notification(
+						`You got mentioned in ${latestPost.data[0].channel} (click to open)!`,
+						{
+							body: `${latestPost.data[0].name}`,
+						}
+					);
+					newNotif.addEventListener("click", function () {
+						window.open(`/`);
+					});
 					console.log("mentioned");
 				}
 			}
@@ -136,7 +145,6 @@
 			const latestPost = await supabase
 				.from("posts")
 				.select("*")
-				.eq("channel", activeChannel)
 				.order("id", { ascending: false });
 
 			console.log(latestPost);
@@ -170,7 +178,15 @@
 				) {
 					console.log("mentioned");
 					Notification.requestPermission();
-					new Notification("You got mentioned! Check the chat.");
+					let newNotif = new Notification(
+						`You got mentioned in ${latestPost.data[0].channel != 'null' ? latestPost.data[0].channel : "Public Chat"} (click to open)!`,
+						{
+							body: `${latestPost.data[0].name}`,
+						}
+					);
+					newNotif.addEventListener("click", function () {
+						window.open(`/`);
+					});
 					console.log("mentioned");
 				}
 			}
