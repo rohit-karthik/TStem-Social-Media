@@ -17,6 +17,7 @@
 	let newChannel = "";
 	let channels = [];
 	let channelData = [];
+	let channelPeople = []
 
 	let activeChannel = "null";
 	
@@ -53,12 +54,22 @@
 		await downloadProfilePic();
 		channels = [];
 		channelData = [];
-		for (var i in res2.data) {
+		channelPeople = [];
+		const userData = await supabase.from("users").select("*");
+		for (let i in res2.data) {
 			if (res2.data[i].access.includes(userSess.email)) {
 				channels = [...channels, res2.data[i].name];
 			}
 			if (res2.data[i].name == activeChannel) {
 				channelData = res2.data[i].access;
+				for (let j in userData.data) {
+					if (res2.data[i].access.includes(userData.data[j].email)) {
+						if (userData.data[j].name != null) {
+							channelPeople = [...channelPeople, userData.data[j].name]
+						}
+					}
+				}
+				console.log(channelPeople)
 			}
 		}
 
@@ -86,7 +97,7 @@
 			console.log(nameMentions);
 			if (nameMentions.data.length != 0) {
 				if (nameMentions.data[0].name != null) {
-					s2 = '@"'.concat(nameMentions.data[0].name, '"');
+					s2 = '@'.concat(nameMentions.data[0].name);
 				}
 			}
 
@@ -159,7 +170,7 @@
 			console.log(nameMentions);
 			if (nameMentions.data.length != 0) {
 				if (nameMentions.data[0].name != null) {
-					s2 = '@"'.concat(nameMentions.data[0].name, '"');
+					s2 = '@'.concat(nameMentions.data[0].name);
 				}
 			}
 
