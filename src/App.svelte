@@ -17,10 +17,13 @@
 	let newChannel = "";
 	let channels = [];
 	let channelData = [];
-	let channelPeople = []
+	let channelPeople = [];
+
+	let availableMentions = [];
+	let showMentionPanel = false;
 
 	let activeChannel = "null";
-	
+
 	let newEmail = "";
 
 	let oldPassword = "";
@@ -52,24 +55,32 @@
 	async function getData() {
 		const res2 = await supabase.from("channels").select("*");
 		await downloadProfilePic();
-		channels = [];
+		//channels = [];
 		channelData = [];
 		channelPeople = [];
+
 		const userData = await supabase.from("users").select("*");
 		for (let i in res2.data) {
-			if (res2.data[i].access.includes(userSess.email)) {
-				channels = [...channels, res2.data[i].name];
-			}
 			if (res2.data[i].name == activeChannel) {
 				channelData = res2.data[i].access;
 				for (let j in userData.data) {
 					if (res2.data[i].access.includes(userData.data[j].email)) {
 						if (userData.data[j].name != null) {
-							channelPeople = [...channelPeople, userData.data[j].name]
+							channelPeople = [
+								...channelPeople,
+								userData.data[j].name,
+							];
 						}
 					}
 				}
-				console.log(channelPeople)
+				console.log(channelPeople);
+			}
+		}
+
+		channels = [];
+		for (let i in res2.data) {
+			if (res2.data[i].access.includes(userSess.email)) {
+				channels = [...channels, res2.data[i].name];
 			}
 		}
 
@@ -97,7 +108,7 @@
 			console.log(nameMentions);
 			if (nameMentions.data.length != 0) {
 				if (nameMentions.data[0].name != null) {
-					s2 = '@'.concat(nameMentions.data[0].name);
+					s2 = "@".concat(nameMentions.data[0].name);
 				}
 			}
 
@@ -170,7 +181,7 @@
 			console.log(nameMentions);
 			if (nameMentions.data.length != 0) {
 				if (nameMentions.data[0].name != null) {
-					s2 = '@'.concat(nameMentions.data[0].name);
+					s2 = "@".concat(nameMentions.data[0].name);
 				}
 			}
 
@@ -190,7 +201,11 @@
 					console.log("mentioned");
 					Notification.requestPermission();
 					let newNotif = new Notification(
-						`You got mentioned in ${latestPost.data[0].channel != 'null' ? latestPost.data[0].channel : "Public Chat"} (click to open)!`,
+						`You got mentioned in ${
+							latestPost.data[0].channel != "null"
+								? latestPost.data[0].channel
+								: "Public Chat"
+						} (click to open)!`,
 						{
 							body: `${latestPost.data[0].name}`,
 						}
@@ -387,7 +402,7 @@
 					]);
 			}
 		}
-		await getData();
+		//await getData();
 		deleting = false;
 	}
 
@@ -960,6 +975,13 @@
 								</div>
 							</div>
 							<div class="fixed bottom-0">
+								{#if showMentionPanel}
+									<div class="bg-white w-80 flex flex-col-reverse bottom-16 overflow-y-scroll">
+										{#each availableMentions as mentionPerson}
+											<p>{mentionPerson}</p>
+										{/each}
+									</div>
+								{/if}
 								<div class="bg-white w-screen flex bottom-12">
 									<p style="color: red;">{errorMsg}</p>
 								</div>
@@ -993,6 +1015,32 @@
 										bind:value={name}
 										on:keydown={handleKeydown}
 										class="border-2 p-2 m-1 rounded-md w-5/12 resize-none h-11"
+										on:input={() => {
+											let subStr = name.substring(
+												name.lastIndexOf("@") + 1
+											);
+											let myVar = false;
+											availableMentions = [];
+											if (name.lastIndexOf("@") != -1) {
+												for (let i in channelPeople) {
+													if (
+														channelPeople[
+															i
+														].includes(subStr)
+													) {
+														myVar = true;
+														showMentionPanel = true;
+														availableMentions = [
+															...availableMentions,
+															channelPeople[i],
+														];
+													}
+												}
+											}
+											if (!myVar) {
+												showMentionPanel = false;
+											}
+										}}
 									/>
 									<button
 										on:click={() => {
