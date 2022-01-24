@@ -920,6 +920,7 @@
 														{#each post.files as file}
 															{#if file.endsWith(".png") || file.endsWith(".jpg") || file.endsWith(".jpeg")}
 																<img
+																	class="max-w-[90%] max-h-[90%]"
 																	src={file}
 																	alt="File"
 																/>
