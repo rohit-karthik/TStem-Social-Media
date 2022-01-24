@@ -790,7 +790,7 @@
 			{#if !deleting}
 				<div class="flex flex-row ">
 					<div
-						class="w-2/12 fixed left-0 top-0 h-screen text-white"
+						class="w-2/12 fixed left-0 top-0 h-screen text-white overflow-y-auto"
 						style="background-color: #39133D;"
 					>
 						<p class="m-2 text-lg">
@@ -977,9 +977,18 @@
 							</div>
 							<div class="fixed bottom-0">
 								{#if showMentionPanel}
-									<div class="bg-white w-80 flex flex-col-reverse bottom-16 overflow-y-scroll">
+									<div
+										class="bg-white w-80 flex flex-col-reverse bottom-16 overflow-y-scroll"
+									>
 										{#each availableMentions as mentionPerson}
-											<p>{mentionPerson}</p>
+											<button
+												class="hover:bg-blue-600 hover:text-white"
+												on:click={() => {
+													let newText = name.concat(mentionPerson, " ");
+													name = newText;
+													showMentionPanel = false;
+												}}>{mentionPerson}</button
+											>
 										{/each}
 									</div>
 								{/if}
