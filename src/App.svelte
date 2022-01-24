@@ -1,4 +1,6 @@
 <script>
+	let nameInput; // for focus states
+
 	let posts;
 	let name = "";
 	let desc = "";
@@ -982,11 +984,12 @@
 									>
 										{#each availableMentions as mentionPerson}
 											<button
-												class="hover:bg-blue-600 hover:text-white"
+												class="hover:bg-blue-600 hover:text-white flex p-1"
 												on:click={() => {
 													let newText = name.concat(mentionPerson, " ");
 													name = newText;
 													showMentionPanel = false;
+													nameInput.focus();
 												}}>{mentionPerson}</button
 											>
 										{/each}
@@ -1023,6 +1026,7 @@
 									<input
 										placeholder="Text (required): "
 										bind:value={name}
+										bind:this={nameInput}
 										on:keydown={handleKeydown}
 										class="border-2 p-2 m-1 rounded-md w-5/12 resize-none h-11"
 										on:input={() => {
