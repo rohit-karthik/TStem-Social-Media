@@ -18,7 +18,7 @@
 
 	let newChannel = "";
 	let channels = [];
-	let channelData = [];
+	let channelData = "";
 	let channelPeople = [];
 
 	let availableMentions = [];
@@ -54,14 +54,13 @@
 
 	let userSess = supabase.auth.user();
 
-
 	let peopleStatusChannel = [];
 
 	async function getData() {
 		const res2 = await supabase.from("channels").select("*");
 		await downloadProfilePic();
 		//channels = [];
-		channelData = [];
+		channelData = "";
 		channelPeople = [];
 
 		const userData = await supabase.from("users").select("*");
@@ -74,6 +73,10 @@
 							channelPeople = [
 								...channelPeople,
 								userData.data[j].name,
+							];
+							peopleStatusChannel = [
+								...peopleStatusChannel,
+								userData.data[j].status,
 							];
 						}
 					}
@@ -534,20 +537,25 @@
 
 		if (event.keyCode == 38) {
 			event.preventDefault();
-			activeMentionPerson = activeMentionPerson > 0 ? activeMentionPerson - 1 : 0;
-			activeMentionPeople[activeMentionPerson].focus()
+			activeMentionPerson =
+				activeMentionPerson > 0 ? activeMentionPerson - 1 : 0;
+			activeMentionPeople[activeMentionPerson].focus();
 		}
 	}
 
 	function handleKeydownMentions(event) {
 		if (event.keyCode == 38) {
 			event.preventDefault();
-			activeMentionPerson = activeMentionPerson > 0 ? activeMentionPerson - 1 : 0;
-			activeMentionPeople[activeMentionPerson].focus()
+			activeMentionPerson =
+				activeMentionPerson > 0 ? activeMentionPerson - 1 : 0;
+			activeMentionPeople[activeMentionPerson].focus();
 		} else if (event.keyCode == 40) {
 			event.preventDefault();
-			activeMentionPerson = activeMentionPerson < activeMentionPeople.length - 1 ? activeMentionPerson + 1 : activeMentionPeople.length - 1;
-			activeMentionPeople[activeMentionPerson].focus()
+			activeMentionPerson =
+				activeMentionPerson < activeMentionPeople.length - 1
+					? activeMentionPerson + 1
+					: activeMentionPeople.length - 1;
+			activeMentionPeople[activeMentionPerson].focus();
 		} else if (event.keyCode == 27) {
 			document.getElementById("chatInput").focus();
 		}
@@ -714,17 +722,17 @@
 	document.onmousemove = async function () {
 		clearTimeout(timeout);
 		const { data, error } = await supabase
-				.from("users")
-				.select()
-				.eq("email", userSess.email);
-				
+			.from("users")
+			.select()
+			.eq("email", userSess.email);
+
 		console.log(data);
 		if (data[0].status != "online") {
 			const { data2, error2 } = await supabase.from("users").upsert({
-					id: data[0].id,
-					email: userSess.email,
-					status: "online",
-				});
+				id: data[0].id,
+				email: userSess.email,
+				status: "online",
+			});
 		}
 		timeout = setTimeout(async function () {
 			const { data, error } = await supabase
@@ -1030,8 +1038,17 @@
 												class="hover:bg-gray-200 focus:bg-blue-600 focus:text-white focus:outline-none flex p-1"
 												on:keydown={handleKeydownMentions}
 												on:click={() => {
-													let newText = name.substring(0, name.lastIndexOf('@')) + mentionPerson + " ";
-													name = "@" + newText;
+													let newText =
+														name.substring(
+															0,
+															name.lastIndexOf(
+																"@"
+															)
+														) +
+														"@" +
+														mentionPerson +
+														" ";
+													name = newText;
 													showMentionPanel = false;
 													nameInput.focus();
 												}}>{mentionPerson}</button
@@ -1074,7 +1091,10 @@
 										bind:this={nameInput}
 										on:keydown={handleKeydown}
 										on:keyup={() => {
-											activeMentionPeople = document.querySelectorAll('[id=eachPerson]');
+											activeMentionPeople =
+												document.querySelectorAll(
+													"[id=eachPerson]"
+												);
 										}}
 										class="border-2 p-2 m-1 rounded-md w-5/12 resize-none h-11"
 										on:input={() => {
@@ -1328,9 +1348,20 @@
 					>
 						{#if activeChannel != "null"}
 							<p class="font-bold text-xl m-1">Members:</p>
-							<p class="m-1">
-								{channelData}
-							</p>
+							{#each channelData.split(",") as person, i}
+								<div class="flex items-center">
+									<img
+										src={peopleStatusChannel[i] == "online"
+											? "https://bit.ly/3rTxbrW"
+											: "https://bit.ly/3AvrIvk"}
+										alt="Status"
+										class="w-3 h-3"
+									/>
+									<p class="m-1">
+										{person}
+									</p>
+								</div>
+							{/each}
 							<div class="flex">
 								<button
 									class="p-2 m-1 rounded-md bg-emerald-400 shadow-lg"
