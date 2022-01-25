@@ -255,6 +255,7 @@
 			}, 1500);
 		} else {
 			//console.log(profilePic)
+			showMentionPanel = false;
 			let postDate = new Date();
 			let postMinutes = postDate.getMinutes();
 			let postHours = postDate.getHours();
