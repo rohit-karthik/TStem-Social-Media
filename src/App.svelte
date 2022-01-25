@@ -518,9 +518,34 @@
 		}
 	}
 
+	let activeMentionPeople;
+	let activeMentionPerson = availableMentions.length;
+
 	function handleKeydown(event) {
+		//console.log(activeMentionPeople)
+		activeMentionPerson = availableMentions.length;
 		if (event.key == "Enter") {
 			addPost(activeChannel);
+		}
+
+		if (event.keyCode == 38) {
+			event.preventDefault();
+			activeMentionPerson = activeMentionPerson > 0 ? activeMentionPerson - 1 : 0;
+			activeMentionPeople[activeMentionPerson].focus()
+		}
+	}
+
+	function handleKeydownMentions(event) {
+		if (event.keyCode == 38) {
+			event.preventDefault();
+			activeMentionPerson = activeMentionPerson > 0 ? activeMentionPerson - 1 : 0;
+			activeMentionPeople[activeMentionPerson].focus()
+		} else if (event.keyCode == 40) {
+			event.preventDefault();
+			activeMentionPerson = activeMentionPerson < activeMentionPeople.length - 1 ? activeMentionPerson + 1 : activeMentionPeople.length - 1;
+			activeMentionPeople[activeMentionPerson].focus()
+		} else if (event.keyCode == 27) {
+			document.getElementById("chatInput").focus();
 		}
 	}
 
@@ -980,11 +1005,13 @@
 							<div class="fixed bottom-0">
 								{#if showMentionPanel}
 									<div
-										class="bg-white w-80 flex flex-col-reverse bottom-16 overflow-y-scroll"
+										class="bg-white w-80 flex flex-col bottom-16 overflow-y-scroll"
 									>
 										{#each availableMentions as mentionPerson}
 											<button
-												class="hover:bg-blue-600 hover:text-white flex p-1"
+												id="eachPerson"
+												class="hover:bg-gray-200 focus:bg-blue-600 focus:text-white focus:outline-none flex p-1"
+												on:keydown={handleKeydownMentions}
 												on:click={() => {
 													let newText = name.concat(mentionPerson, " ");
 													name = newText;
@@ -1024,10 +1051,14 @@
 										</svg>
 									</label>
 									<input
+										id="chatInput"
 										placeholder="Text (required): "
 										bind:value={name}
 										bind:this={nameInput}
 										on:keydown={handleKeydown}
+										on:keyup={() => {
+											activeMentionPeople = document.querySelectorAll('[id=eachPerson]');
+										}}
 										class="border-2 p-2 m-1 rounded-md w-5/12 resize-none h-11"
 										on:input={() => {
 											let subStr = name.substring(
@@ -1052,6 +1083,7 @@
 												}
 											}
 											if (!myVar) {
+												availableMentions = [];
 												showMentionPanel = false;
 											}
 										}}
