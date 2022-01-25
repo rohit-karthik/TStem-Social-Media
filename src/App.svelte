@@ -54,6 +54,9 @@
 
 	let userSess = supabase.auth.user();
 
+
+	let peopleStatusChannel = [];
+
 	async function getData() {
 		const res2 = await supabase.from("channels").select("*");
 		await downloadProfilePic();
@@ -708,8 +711,21 @@
 
 	let timeout;
 
-	/*document.onmousemove = async function () {
+	document.onmousemove = async function () {
 		clearTimeout(timeout);
+		const { data, error } = await supabase
+				.from("users")
+				.select()
+				.eq("email", userSess.email);
+				
+		console.log(data);
+		if (data[0].status != "online") {
+			const { data2, error2 } = await supabase.from("users").upsert({
+					id: data[0].id,
+					email: userSess.email,
+					status: "online",
+				});
+		}
 		timeout = setTimeout(async function () {
 			const { data, error } = await supabase
 				.from("users")
@@ -725,7 +741,7 @@
 				});
 			}
 		}, 5000);
-	};*/
+	};
 
 	/*document.addEventListener("paste", async (e) => {
 		console.log(typeof e.clipboardData.files[0]);
@@ -1014,8 +1030,8 @@
 												class="hover:bg-gray-200 focus:bg-blue-600 focus:text-white focus:outline-none flex p-1"
 												on:keydown={handleKeydownMentions}
 												on:click={() => {
-													let newText = name.concat(mentionPerson, " ");
-													name = newText;
+													let newText = name.substring(0, name.lastIndexOf('@')) + mentionPerson + " ";
+													name = "@" + newText;
 													showMentionPanel = false;
 													nameInput.focus();
 												}}>{mentionPerson}</button
