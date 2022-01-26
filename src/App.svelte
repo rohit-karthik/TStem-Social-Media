@@ -21,6 +21,8 @@
 	let channelData = "";
 	let channelPeople = [];
 
+	let allChannelData = [];
+
 	let availableMentions = [];
 	let showMentionPanel = false;
 
@@ -46,6 +48,7 @@
 	let opened = false;
 
 	import { createClient } from "@supabase/supabase-js";
+import { element } from "svelte/internal";
 
 	export const supabase = createClient(
 		"https://tymaawbbrmoeljisdgry.supabase.co",
@@ -719,15 +722,40 @@
 
 	let timeout;
 
-	document.onmousemove = async function () {
-		clearTimeout(timeout);
+	let mouseMoving = false;
+	let mouseMoved = false;
+
+	/*setInterval(async () => {
+		if (!mouseMoved && mouseMoving) {
+			const data2nd = await supabase
+				.from("users")
+				.select()
+				.eq("email", userSess.email);
+			//console.log(data);
+			if (data2nd.data[0].status != "away") {
+				console.log(data2nd.data[0].status);
+				const { data1, error1 } = await supabase.from("users").upsert({
+					id: data2nd.data[0].id,
+					email: userSess.email,
+					status: "away",
+				});
+			}
+			mouseMoving = false;
+		}
+		mouseMoved = false;
+	}, 5000);*/
+	/*document.onmousemove = async function () {
+		//clearTimeout(timeout);
+		mouseMoving = true;
+		mouseMoved = true;
 		const { data, error } = await supabase
 			.from("users")
 			.select()
 			.eq("email", userSess.email);
 
-		console.log(data);
+		//console.log(data);
 		if (data[0].status != "online") {
+			console.log(data[0].status)
 			const { data2, error2 } = await supabase.from("users").upsert({
 				id: data[0].id,
 				email: userSess.email,
@@ -735,21 +763,24 @@
 			});
 		}
 		timeout = setTimeout(async function () {
-			const { data, error } = await supabase
-				.from("users")
-				.select()
-				.eq("email", userSess.email);
-			console.log(data);
-			if (data[0].status != "away") {
-				console.log("here");
-				const { data1, error1 } = await supabase.from("users").upsert({
-					id: data[0].id,
-					email: userSess.email,
-					status: "away",
-				});
-			}
+			
 		}, 5000);
-	};
+	};*/
+
+	supabase
+		.from("users")
+		.on("*", (res) => {
+			//console.log(res);
+
+			channelData.split(",").forEach((element, i) => {
+				if (element == res.new.email) {
+					peopleStatusChannel[i] = res.new.status;
+				}
+			})
+			//location.reload();
+			//console.log(todos);
+		})
+		.subscribe();
 
 	/*document.addEventListener("paste", async (e) => {
 		console.log(typeof e.clipboardData.files[0]);
