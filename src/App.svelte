@@ -48,7 +48,7 @@
 	let opened = false;
 
 	import { createClient } from "@supabase/supabase-js";
-import { element } from "svelte/internal";
+	import { element } from "svelte/internal";
 
 	export const supabase = createClient(
 		"https://tymaawbbrmoeljisdgry.supabase.co",
@@ -80,6 +80,10 @@ import { element } from "svelte/internal";
 							peopleStatusChannel = [
 								...peopleStatusChannel,
 								userData.data[j].status,
+							];
+							allChannelData = [
+								...allChannelData,
+								userData.data[j]
 							];
 						}
 					}
@@ -725,6 +729,42 @@ import { element } from "svelte/internal";
 	let mouseMoving = false;
 	let mouseMoved = false;
 
+	import  * as ifvisible from "ifvisible.js";
+
+	ifvisible.setIdleDuration(120)
+
+	ifvisible.on("idle", async function () {
+		const data2nd = await supabase
+			.from("users")
+			.select()
+			.eq("email", userSess.email);
+		//console.log(data);
+		if (data2nd.data[0].status != "away") {
+			console.log(data2nd.data[0].status);
+			const { data1, error1 } = await supabase.from("users").upsert({
+				id: data2nd.data[0].id,
+				email: userSess.email,
+				status: "away",
+			});
+		}
+	});
+
+	ifvisible.on("wakeup", async function () {
+		const data2nd = await supabase
+			.from("users")
+			.select()
+			.eq("email", userSess.email);
+		//console.log(data);
+		if (data2nd.data[0].status != "online") {
+			console.log(data2nd.data[0].status);
+			const { data1, error1 } = await supabase.from("users").upsert({
+				id: data2nd.data[0].id,
+				email: userSess.email,
+				status: "online",
+			});
+		}
+	});
+
 	/*setInterval(async () => {
 		if (!mouseMoved && mouseMoving) {
 			const data2nd = await supabase
@@ -775,8 +815,14 @@ import { element } from "svelte/internal";
 			channelData.split(",").forEach((element, i) => {
 				if (element == res.new.email) {
 					peopleStatusChannel[i] = res.new.status;
+					allChannelData.forEach((val, i) => {
+						//console.log(res.new.name)
+						if (val.name == res.new.name) {
+							allChannelData[i].status = res.new.status;
+						}
+					})
 				}
-			})
+			});
 			//location.reload();
 			//console.log(todos);
 		})
@@ -1379,17 +1425,17 @@ import { element } from "svelte/internal";
 					>
 						{#if activeChannel != "null"}
 							<p class="font-bold text-xl m-1">Members:</p>
-							{#each channelData.split(",") as person, i}
+							{#each allChannelData as person}
 								<div class="flex items-center">
 									<img
-										src={peopleStatusChannel[i] == "online"
+										src={person.status == "online"
 											? "https://bit.ly/3rTxbrW"
 											: "https://bit.ly/3AvrIvk"}
 										alt="Status"
 										class="w-3 h-3"
 									/>
 									<p class="m-1">
-										{person}
+										{person.name}
 									</p>
 								</div>
 							{/each}
