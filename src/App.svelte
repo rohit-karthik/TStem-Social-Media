@@ -65,6 +65,7 @@
 		//channels = [];
 		channelData = "";
 		channelPeople = [];
+		allChannelData = [];
 
 		const userData = await supabase.from("users").select("*");
 		for (let i in res2.data) {
