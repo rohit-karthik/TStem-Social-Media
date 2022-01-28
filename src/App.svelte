@@ -84,7 +84,7 @@
 							];
 							allChannelData = [
 								...allChannelData,
-								userData.data[j]
+								userData.data[j],
 							];
 						}
 					}
@@ -730,9 +730,43 @@
 	let mouseMoving = false;
 	let mouseMoved = false;
 
-	import  * as ifvisible from "ifvisible.js";
+	import * as ifvisible from "ifvisible.js";
 
-	ifvisible.setIdleDuration(120)
+	ifvisible.setIdleDuration(120);
+
+	window.addEventListener("DOMContentLoaded", async function () {
+		const data2nd = await supabase
+			.from("users")
+			.select()
+			.eq("email", userSess.email);
+		//console.log(data);
+		if (data2nd.data[0].status != "online") {
+			console.log(data2nd.data[0].status);
+			const { data1, error1 } = await supabase.from("users").upsert({
+				id: data2nd.data[0].id,
+				email: userSess.email,
+				status: "online",
+			});
+		}
+	});
+
+	window.onbeforeunload = async function () {
+		const data2nd = await supabase
+			.from("users")
+			.select()
+			.eq("email", userSess.email);
+		//console.log(data);
+		if (data2nd.data[0].status != "offline") {
+			console.log(data2nd.data[0].status);
+			const { data1, error1 } = await supabase.from("users").upsert({
+				id: data2nd.data[0].id,
+				email: userSess.email,
+				status: "offline",
+			});
+		}
+		console.log("went here!")
+		return null;
+	};
 
 	ifvisible.on("idle", async function () {
 		const data2nd = await supabase
@@ -821,7 +855,7 @@
 						if (val.name == res.new.name) {
 							allChannelData[i].status = res.new.status;
 						}
-					})
+					});
 				}
 			});
 			//location.reload();
@@ -1431,7 +1465,9 @@
 									<img
 										src={person.status == "online"
 											? "https://bit.ly/3rTxbrW"
-											: "https://bit.ly/3AvrIvk"}
+											: person.status == "away"
+											? "https://bit.ly/3AvrIvk"
+											: "https://png.pngitem.com/pimgs/s/204-2040894_grey-circle-icon-transparent-png-download-small-black.png"}
 										alt="Status"
 										class="w-3 h-3"
 									/>
