@@ -1246,6 +1246,11 @@
 									>
 								</div>
 							</div>
+							<!--<button class="fixed bottom-12 right-12" on:click={() => {
+								//window.scrollTo({ left: 0, top: document.mainContent.scrollHeight, behavior: "smooth" });
+								document.getElementById("mainContent").scrollTop = 106;
+								console.log(document.getElementById("mainContent").scrollTop)
+							}}>Bottom</button>-->
 						</div>
 					{:else if chatOrTodo == "todos"}
 						<div class="ml-64" id="mainContent" style="width: 100%">
