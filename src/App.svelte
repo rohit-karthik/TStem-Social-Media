@@ -764,7 +764,7 @@
 				status: "offline",
 			});
 		}
-		console.log("went here!")
+		console.log("went here!");
 		return null;
 	};
 
@@ -942,6 +942,28 @@
 			errorMsg = "";
 		}
 	});*/
+
+	/*/*function updateScroll() {
+		document.documentElement.scrollTop = document.documentElement.scrollHeight;
+	}
+
+	document.documentElement.scrollTop = document.documentElement.scrollHeight;
+	console.log(document.documentElement.scrollTop);
+	//setInterval(updateScroll, 1000);
+	setTimeout(updateScroll, 5000);
+
+	/*window.addEventListener("DOMContentLoaded", () => {
+		document.documentElement.scrollTop = document.documentElement.scrollHeight;
+	})*/
+	//document.documentElement.scrollTop = document.documentElement.scrollHeight;
+
+	/*document.addEventListener("readystatechange", (event) => {
+		document.documentElement.scrollTop =
+			document.documentElement.scrollHeight;
+		console.log(document.documentElement.scrollTop);
+		console.log(document.documentElement.scrollHeight);
+	});*/
+
 </script>
 
 <div class="flex overflow-auto overflow-x-auto flex-col-reverse h-screen">
@@ -1246,11 +1268,18 @@
 									>
 								</div>
 							</div>
-							<!--<button class="fixed bottom-12 right-12" on:click={() => {
-								//window.scrollTo({ left: 0, top: document.mainContent.scrollHeight, behavior: "smooth" });
-								document.getElementById("mainContent").scrollTop = 106;
-								console.log(document.getElementById("mainContent").scrollTop)
-							}}>Bottom</button>-->
+							<!--<button
+								class="fixed bottom-12 right-12"
+								on:click={() => {
+									//window.scrollTo({ left: 0, top: document.mainContent.scrollHeight, behavior: "smooth" });
+									//window.scrollingElement.scrollTop;
+									//console.log(document.getElementById("mainContent").scrollTop)
+									//console.log(document.body.scrollTop)
+									console.log(
+										document.documentElement.scrollTop
+									);
+								}}>Bottom</button
+							>-->
 						</div>
 					{:else if chatOrTodo == "todos"}
 						<div class="ml-64" id="mainContent" style="width: 100%">
