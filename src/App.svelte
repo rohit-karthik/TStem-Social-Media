@@ -69,7 +69,7 @@
 
 		const userData = await supabase.from("users").select("*");
 		for (let i in res2.data) {
-			if (res2.data[i].name == activeChannel) {
+			if (res2.data[i].name === activeChannel) {
 				channelData = res2.data[i].access;
 				for (let j in userData.data) {
 					if (res2.data[i].access.includes(userData.data[j].email)) {
@@ -100,7 +100,7 @@
 			}
 		}
 
-		if (activeChannel != "null") {
+		if (activeChannel !== "null") {
 			const res = await supabase
 				.from("posts")
 				.select("*")
@@ -122,7 +122,7 @@
 				.eq("email", userSess.email);
 
 			console.log(nameMentions);
-			if (nameMentions.data.length != 0) {
+			if (nameMentions.data.length !== 0) {
 				if (nameMentions.data[0].name != null) {
 					s2 = "@".concat(nameMentions.data[0].name);
 				}
@@ -133,7 +133,7 @@
 			//console.log(latestPost.data[0].name)
 			console.log(s);
 			if (
-				latestPost.data.length != 0 &&
+				latestPost.data.length !== 0 &&
 				latestPost.data[0].name != null
 			) {
 				if (
@@ -195,7 +195,7 @@
 				.eq("email", userSess.email);
 
 			console.log(nameMentions);
-			if (nameMentions.data.length != 0) {
+			if (nameMentions.data.length !== 0) {
 				if (nameMentions.data[0].name != null) {
 					s2 = "@".concat(nameMentions.data[0].name);
 				}
@@ -206,7 +206,7 @@
 			console.log(latestPost.data[0].name);
 			console.log(s);
 			if (
-				latestPost.data.length != 0 &&
+				latestPost.data.length !== 0 &&
 				latestPost.data[0].name != null
 			) {
 				if (
@@ -218,7 +218,7 @@
 					Notification.requestPermission();
 					let newNotif = new Notification(
 						`You got mentioned in ${
-							latestPost.data[0].channel != "null"
+							latestPost.data[0].channel !== "null"
 								? latestPost.data[0].channel
 								: "Public Chat"
 						} (click to open)!`,
@@ -262,7 +262,7 @@
 	}
 
 	async function addPost(channelName) {
-		if (name == "") {
+		if (name === "") {
 			errorMsg = "Please enter your message!";
 			setTimeout(() => {
 				errorMsg = "";
@@ -281,9 +281,9 @@
 			if (postHours > 12) {
 				postHours -= 12;
 				amPm = " PM";
-			} else if (postHours == 12) {
+			} else if (postHours === 12) {
 				amPm = " PM";
-			} else if (postHours == 0) {
+			} else if (postHours === 0) {
 				postHours += 12;
 			}
 
@@ -294,7 +294,7 @@
 				.select()
 				.eq("email", userSess.email);
 			//console.log(data);
-			if (data.length != 0) {
+			if (data.length !== 0) {
 				if (data[0].name != null) {
 					valueForName = data[0].name;
 				}
@@ -327,7 +327,7 @@
 	}
 
 	async function addTodo(channelName) {
-		if (name == "") {
+		if (name === "") {
 			errorMsg = "Please enter a name!";
 			setTimeout(() => {
 				errorMsg = "";
@@ -346,7 +346,7 @@
 	}
 
 	async function addChannel() {
-		if (newChannel == "") {
+		if (newChannel === "") {
 			errorMsg = "Please enter a channel name!";
 			setTimeout(() => {
 				errorMsg = "";
@@ -497,13 +497,21 @@
 
 	supabase
 		.from("posts")
-		.on("*", (res) => {
+		.on("INSERT", (res) => {
 			//console.log(res);
 
-			getData();
+
 			//console.log(posts);
+			posts = [...posts,res.new]
 		})
 		.subscribe();
+
+	supabase
+			.from("posts")
+			.on("DELETE", (res) => {
+				getData()
+			})
+			.subscribe();
 
 	supabase
 		.from("todos")
@@ -539,11 +547,11 @@
 	function handleKeydown(event) {
 		//console.log(activeMentionPeople)
 		activeMentionPerson = availableMentions.length;
-		if (event.key == "Enter") {
+		if (event.key === "Enter") {
 			addPost(activeChannel);
 		}
 
-		if (event.keyCode == 38) {
+		if (event.keyCode === 38) {
 			event.preventDefault();
 			activeMentionPerson =
 				activeMentionPerson > 0 ? activeMentionPerson - 1 : 0;
@@ -552,25 +560,25 @@
 	}
 
 	function handleKeydownMentions(event) {
-		if (event.keyCode == 38) {
+		if (event.keyCode === 38) {
 			event.preventDefault();
 			activeMentionPerson =
 				activeMentionPerson > 0 ? activeMentionPerson - 1 : 0;
 			activeMentionPeople[activeMentionPerson].focus();
-		} else if (event.keyCode == 40) {
+		} else if (event.keyCode === 40) {
 			event.preventDefault();
 			activeMentionPerson =
 				activeMentionPerson < activeMentionPeople.length - 1
 					? activeMentionPerson + 1
 					: activeMentionPeople.length - 1;
 			activeMentionPeople[activeMentionPerson].focus();
-		} else if (event.keyCode == 27) {
+		} else if (event.keyCode === 27) {
 			document.getElementById("chatInput").focus();
 		}
 	}
 
 	function handleKeydownTodo(event) {
-		if (event.key == "Enter") {
+		if (event.key === "Enter") {
 			addTodo(activeChannel);
 		}
 	}
@@ -578,7 +586,7 @@
 	async function uploadProfilePic(e) {
 		console.log(e.target.files[0]);
 		var file = e.target.files[0];
-		if (e.target.files || e.target.files.length != 0) {
+		if (e.target.files || e.target.files.length !== 0) {
 			console.log(file);
 			console.log(file.name.split(".").pop());
 			const fileExt = "png"; //file.name.split(".").pop();
@@ -621,7 +629,7 @@
 			const res = await fetch(
 				`https://tymaawbbrmoeljisdgry.supabase.co/storage/v1/object/public/profile-pics/${userSess.id}/profile-picture.png`
 			);
-			if (res.status != 400) {
+			if (res.status !== 400) {
 				profilePic = `https://tymaawbbrmoeljisdgry.supabase.co/storage/v1/object/public/profile-pics/${userSess.id}/profile-picture.png`;
 			}
 		} catch {}
@@ -632,7 +640,7 @@
 		let filePaths = [];
 		console.log(e.target.files[0]);
 
-		if (e.target.files || e.target.files.length != 0) {
+		if (e.target.files || e.target.files.length !== 0) {
 			const { data, error } = await supabase.storage
 				.from("user-files")
 				.list(activeChannel);
@@ -642,7 +650,7 @@
 				let fileName = e.target.files[i].name;
 				let addOn = 0;
 				for (let j = 0; j < data.length; j++) {
-					if (fileName == data[j].name) {
+					if (fileName === data[j].name) {
 						fileName =
 							fileName.substring(0, fileName.lastIndexOf(".")) +
 							`-${addOn}` +
@@ -681,9 +689,9 @@
 			if (postHours > 12) {
 				postHours -= 12;
 				amPm = " PM";
-			} else if (postHours == 12) {
+			} else if (postHours === 12) {
 				amPm = " PM";
-			} else if (postHours == 0) {
+			} else if (postHours === 0) {
 				postHours += 12;
 			}
 
@@ -694,7 +702,7 @@
 				.select()
 				.eq("email", userSess.email);
 
-			if (newRes.data.length != 0) {
+			if (newRes.data.length !== 0) {
 				if (newRes.data[0].name != null) {
 					valueForName = newRes.data[0].name;
 				}
@@ -740,7 +748,7 @@
 			.select()
 			.eq("email", userSess.email);
 		//console.log(data);
-		if (data2nd.data[0].status != "online") {
+		if (data2nd.data[0].status !== "online") {
 			console.log(data2nd.data[0].status);
 			const { data1, error1 } = await supabase.from("users").upsert({
 				id: data2nd.data[0].id,
@@ -756,7 +764,7 @@
 			.select()
 			.eq("email", userSess.email);
 		//console.log(data);
-		if (data2nd.data[0].status != "offline") {
+		if (data2nd.data[0].status !== "offline") {
 			console.log(data2nd.data[0].status);
 			const { data1, error1 } = await supabase.from("users").upsert({
 				id: data2nd.data[0].id,
@@ -774,7 +782,7 @@
 			.select()
 			.eq("email", userSess.email);
 		//console.log(data);
-		if (data2nd.data[0].status != "away") {
+		if (data2nd.data[0].status !== "away") {
 			console.log(data2nd.data[0].status);
 			const { data1, error1 } = await supabase.from("users").upsert({
 				id: data2nd.data[0].id,
@@ -790,7 +798,7 @@
 			.select()
 			.eq("email", userSess.email);
 		//console.log(data);
-		if (data2nd.data[0].status != "online") {
+		if (data2nd.data[0].status !== "online") {
 			console.log(data2nd.data[0].status);
 			const { data1, error1 } = await supabase.from("users").upsert({
 				id: data2nd.data[0].id,
@@ -848,11 +856,11 @@
 			//console.log(res);
 
 			channelData.split(",").forEach((element, i) => {
-				if (element == res.new.email) {
+				if (element === res.new.email) {
 					peopleStatusChannel[i] = res.new.status;
 					allChannelData.forEach((val, i) => {
 						//console.log(res.new.name)
-						if (val.name == res.new.name) {
+						if (val.name === res.new.name) {
 							allChannelData[i].status = res.new.status;
 						}
 					});
@@ -984,7 +992,7 @@
 						</p>
 						<hr />
 						{#each channels as channel}
-							{#if activeChannel == channel}
+							{#if activeChannel === channel}
 								<button
 									class="w-full text-left pl-1 py-1"
 									style="background-color: #2F629E;"
@@ -1003,7 +1011,7 @@
 								>
 							{/if}
 						{/each}
-						{#if activeChannel == "null"}
+						{#if activeChannel === "null"}
 							<button
 								class="w-full text-left pl-1 py-1"
 								style="background-color: #2F629E;"
@@ -1034,12 +1042,12 @@
 							}}>Profile</button
 						>
 					</div>
-					{#if chatOrTodo == "chat"}
+					{#if chatOrTodo === "chat"}
 						<div class="ml-64 w-screen" id="mainContent">
 							<div class="fixed top-0">
 								<div class="bg-white w-screen p-2">
 									<p>
-										# {activeChannel == "null"
+										# {activeChannel === "null"
 											? "Public Chat"
 											: activeChannel}
 									</p>
@@ -1077,6 +1085,7 @@
 													src={post.profilePicture}
 													alt="Default Profile Pic"
 													class="w-8 h-8 rounded-sm self-center"
+													loading="lazy"
 												/>
 											{/if}
 											<div class="pl-3 w-fit">
@@ -1140,7 +1149,7 @@
 															{/if}
 														{/each}
 													{/if}
-													{#if userSess.email.toLowerCase() == post.email}
+													{#if userSess.email.toLowerCase() === post.email}
 														<button
 															class="ml-3 text-red-500"
 															on:click={() => {
@@ -1237,7 +1246,7 @@
 											);
 											let myVar = false;
 											availableMentions = [];
-											if (name.lastIndexOf("@") != -1) {
+											if (name.lastIndexOf("@") !== -1) {
 												for (let i in channelPeople) {
 													if (
 														channelPeople[
@@ -1281,12 +1290,12 @@
 								}}>Bottom</button
 							>-->
 						</div>
-					{:else if chatOrTodo == "todos"}
+					{:else if chatOrTodo === "todos"}
 						<div class="ml-64" id="mainContent" style="width: 100%">
 							<div class="fixed top-0">
 								<div class="bg-white w-screen p-2">
 									<p>
-										# {activeChannel == "null"
+										# {activeChannel === "null"
 											? "Public Chat"
 											: activeChannel}
 									</p>
@@ -1317,7 +1326,7 @@
 											}}
 										/>
 										{todo.name}
-										{#if userSess.email.toLowerCase() == todo.email}
+										{#if userSess.email.toLowerCase() === todo.email}
 											<button
 												class="ml-3 text-red-500"
 												on:click={() => {
@@ -1349,7 +1358,7 @@
 												updateTodo(false, todo.name);
 											}}>Make unchecked</button
 										>
-										{#if userSess.email.toLowerCase() == todo.email}
+										{#if userSess.email.toLowerCase() === todo.email}
 											<button
 												class="ml-3 text-red-500"
 												on:click={() => {
@@ -1449,7 +1458,7 @@
 										.select()
 										.eq("email", userSess.email);
 									console.log(data);
-									if (data.length != 0) {
+									if (data.length !== 0) {
 										console.log("here");
 										const { data1, error1 } = await supabase
 											.from("users")
@@ -1471,7 +1480,7 @@
 									location.reload();
 								}}>Update</button
 							>
-							{#if userSess.email == "rohit.karthik@outlook.com" || userSess.email == "s-rkarthik@lwsd.org"}
+							{#if userSess.email === "rohit.karthik@outlook.com" || userSess.email === "s-rkarthik@lwsd.org"}
 								<input
 									type="email"
 									placeholder="New User Email: "
@@ -1492,14 +1501,14 @@
 						style="width: 0%; transition: 0.5s;"
 						id="sidebar"
 					>
-						{#if activeChannel != "null"}
+						{#if activeChannel !== "null"}
 							<p class="font-bold text-xl m-1">Members:</p>
 							{#each allChannelData as person}
 								<div class="flex items-center">
 									<img
-										src={person.status == "online"
+										src={person.status === "online"
 											? "https://bit.ly/3rTxbrW"
-											: person.status == "away"
+											: person.status === "away"
 											? "https://bit.ly/3AvrIvk"
 											: "https://png.pngitem.com/pimgs/s/204-2040894_grey-circle-icon-transparent-png-download-small-black.png"}
 										alt="Status"
@@ -1547,7 +1556,7 @@
 							bind:value={newChannel}
 							class="border-2 p-2 m-1 rounded-md"
 						/>
-						{#if activeChannel != "null"}
+						{#if activeChannel !== "null"}
 							<button
 								class="p-2 m-1 rounded-md bg-red-500 shadow-lg"
 								on:click={() => {
