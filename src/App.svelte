@@ -1,4 +1,6 @@
 <script>
+	import {marked} from 'marked'
+
 	let nameInput; // for focus states
 
 	let posts;
@@ -1108,9 +1110,7 @@
 												{/if}
 												<div class="flex">
 													{#if post.description != null}
-														<p>
-															{post.name}
-														</p>
+														{@html marked(post.name)}
 													{:else if post.files != null}
 														{#each post.files as file}
 															{#if file.endsWith(".png") || file.endsWith(".jpg") || file.endsWith(".jpeg")}
@@ -1266,8 +1266,7 @@
 												availableMentions = [];
 												showMentionPanel = false;
 											}
-										}}
-									/>
+										}}>
 									<button
 										on:click={() => {
 											addPost(activeChannel);
