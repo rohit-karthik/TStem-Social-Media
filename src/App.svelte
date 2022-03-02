@@ -500,11 +500,10 @@
 	supabase
 		.from("posts")
 		.on("INSERT", (res) => {
-			//console.log(res);
 
 
 			//console.log(posts);
-			posts = [...posts,res.new]
+			if (res.new.channel === activeChannel) posts = [...posts,res.new]
 		})
 		.subscribe();
 
